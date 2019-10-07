@@ -11,17 +11,26 @@ public class Position {
 		this.longitude = longitude;
 	}
 	
+	/**
+	 * Use trigonometry to calculate the latitude and longitude of next position, given direction
+	 * @param direction The chosen direction from 16 directions
+	 * @return The next position
+	 */
 	public Position nextPosition(Direction direction) {
-		double degree = directionToDegree(direction);
+		double radius = directionToRadius(direction);
 		
-		double newLatitude = latitude + r * Math.sin(degree);
-		double newLongitude = longitude + r * Math.cos(degree);
+		double newLatitude = latitude + r * Math.sin(radius);
+		double newLongitude = longitude + r * Math.cos(radius);
 		
 		Position nextPos = new Position(newLatitude, newLongitude);
 		
 		return nextPos;				
 	}
 	
+	/**
+	 * This function checks if the current location is in play area
+	 * @return A boolean value to determine whether current location is in play area.
+	 */
 	public boolean inPlayArea() {
 		double MINLATITUDE = 55.942617;
 		double MAXLATITUDE = 55.946233;
@@ -32,7 +41,12 @@ public class Position {
 				&& longitude > MINLONGITUDE && longitude < MAXLONGITUDE);
 	}
 	
-	public double directionToDegree(Direction direction ) {
+	/**
+	 * This function transfers given direction to radius for easy calculation.
+	 * @param direction
+	 * @return The radius of related direction
+	 */
+	private double directionToRadius(Direction direction ) {
 		double pi = Math.PI;
 		switch (direction) {
 		case E:
