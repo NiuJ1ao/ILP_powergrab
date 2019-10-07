@@ -12,7 +12,7 @@ public class Position {
 	}
 	
 	/**
-	 * Use trigonometry to calculate the latitude and longitude of next position, given direction
+	 * Use trigonometry to calculate the latitude and longitude of next position, given direction.
 	 * @param direction The chosen direction from 16 directions
 	 * @return The next position
 	 */
@@ -28,7 +28,7 @@ public class Position {
 	}
 	
 	/**
-	 * This function checks if the current location is in play area
+	 * This function checks if the current location is in play area.
 	 * @return A boolean value to determine whether current location is in play area.
 	 */
 	public boolean inPlayArea() {
