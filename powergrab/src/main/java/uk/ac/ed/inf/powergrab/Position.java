@@ -17,7 +17,7 @@ public class Position {
 	 * @return The next position
 	 */
 	public Position nextPosition(Direction direction) {
-		double radius = directionToRadius(direction);
+		double radius = directionToRadians(direction);
 		
 		double newLatitude = latitude + r * Math.sin(radius);
 		double newLongitude = longitude + r * Math.cos(radius);
@@ -42,11 +42,11 @@ public class Position {
 	}
 	
 	/**
-	 * This function transfers given direction to radius for easy calculation.
+	 * This function transfers given direction to radians for easy calculation.
 	 * @param direction
 	 * @return The radius of related direction
 	 */
-	private double directionToRadius(Direction direction ) {
+	private double directionToRadians(Direction direction ) {
 		double pi = Math.PI;
 		switch (direction) {
 		case E:
