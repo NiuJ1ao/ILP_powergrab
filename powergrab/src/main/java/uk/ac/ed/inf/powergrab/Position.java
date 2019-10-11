@@ -17,10 +17,10 @@ public class Position {
 	 * @return The next position
 	 */
 	public Position nextPosition(Direction direction) {
-		double radius = directionToRadians(direction);
+		double radian = directionToRadians(direction);
 		
-		double newLatitude = latitude + r * Math.sin(radius);
-		double newLongitude = longitude + r * Math.cos(radius);
+		double newLatitude = latitude + r * Math.sin(radian);
+		double newLongitude = longitude + r * Math.cos(radian);
 		
 		Position nextPos = new Position(newLatitude, newLongitude);
 		
@@ -42,7 +42,7 @@ public class Position {
 	}
 	
 	/**
-	 * This function transfers given direction to radians for easy calculation.
+	 * This function transfers a given direction to a radian for easy calculation.
 	 * @param direction
 	 * @return The radius of related direction
 	 */
