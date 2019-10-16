@@ -3,9 +3,8 @@ package uk.ac.ed.inf.powergrab;
 import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -20,29 +19,44 @@ import com.mapbox.geojson.*;
 public class App {
 	
 	private String mapSource = new String();
-	private List<ChargingStation> stations = new ArrayList<ChargingStation>();
+	protected static List<ChargingStation> stations = new ArrayList<ChargingStation>();
+	protected static Drone testDrone;
 	
     public static void main( String[] args ) {
+    	
+    	String day = args[0];
+    	String month = args[1];
+    	String year = args[2];
+    	Position initDronePos = new Position(Double.parseDouble(args[3]), Double.parseDouble(args[4]));
+    	long seed = Long.parseLong(args[5]);
+    	String droneType = args[6].toLowerCase();
+    	
     	App test = new App();
+    	if (droneType == "stateless") {
+    		testDrone = new StatelessDrone(initDronePos, seed);
+    	} else if (droneType == "stateful") {
+    		testDrone = new StatefulDrone(initDronePos, seed);
+    	} else {
+    		System.out.println("Type not found");
+    		return;
+    	}
     	
     	try {
-			test.downloadMap();
+			test.downloadMap(year, month , day);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
     	test.praseSource();
     	int i = 0;
-    	for (ChargingStation s : test.stations) {
+    	for (ChargingStation s : stations) {
     		System.out.println(s.getId() + "---" + ++i);
     	}
     	
     }
     
-    private void downloadMap() throws Exception {
-    	// Get the date of today.
-    	DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd");  
-    	LocalDateTime today = LocalDateTime.now();  
-    	String mapString = String.format("http://homepages.inf.ed.ac.uk/stg/powergrab/%s/powergrabmap.geojson", dtf.format(today));
+    private void downloadMap(String year, String month, String day) throws Exception {
+    	String mapString = String.format("http://homepages.inf.ed.ac.uk/stg/powergrab/%s/%s/%s/powergrabmap.geojson", 
+    										year, month, day);
     	
     	URL mapUrl = new URL(mapString);
     	HttpURLConnection conn = (HttpURLConnection) mapUrl.openConnection();
