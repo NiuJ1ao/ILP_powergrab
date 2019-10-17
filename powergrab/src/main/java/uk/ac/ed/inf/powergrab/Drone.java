@@ -1,8 +1,5 @@
 package uk.ac.ed.inf.powergrab;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mapbox.geojson.Feature;
 
 public abstract class Drone {
@@ -11,8 +8,9 @@ public abstract class Drone {
 	public double coins;
 	public double power;
 	public long seed;
-	private double EACHMOVE = 1.25;
-	private double MINPAYLOAD = 0.0;
+	private final double POWER_CONSUMPTION = 1.25;
+	private final double MINPAYLOAD = 0.0;
+	protected final double ACCESSRANGE = 0.00025;
 	
 	public Drone(Position p, long seed) {
 		this.position = p;
@@ -23,7 +21,7 @@ public abstract class Drone {
 	
 	public void move(Direction d) {
 		position = position.nextPosition(d);
-		power = power - EACHMOVE;
+		power = power - POWER_CONSUMPTION;
 	}
 	
 	public void transferCoins(double amount) {
@@ -36,22 +34,6 @@ public abstract class Drone {
 	
 	public boolean isGameOver() {
 		return power == MINPAYLOAD;
-	}
-	
-	public List<ChargingStation> stationsNearby() {
-		List<ChargingStation> stations = new ArrayList<ChargingStation>();
-		List<ChargingStation> not = new ArrayList<ChargingStation>();
-		
-		for (Direction d : Direction.values()) {
-			Position nextP = position.nextPosition(d);
-			for (ChargingStation s : App.stations) {
-				if (nextP == s.getPosition()) {
-					stations.add(s);
-				}
-			}
-		}
-		
-		return stations;
 	}
 	
 	public abstract Feature strategy();

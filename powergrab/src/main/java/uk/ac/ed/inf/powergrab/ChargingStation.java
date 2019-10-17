@@ -9,6 +9,8 @@ public class ChargingStation {
 	private String brightness = new String();
 	private Position position;
 	private int type;
+	protected static final int LIGHTHOUSE = 1;
+	protected static final int SKULL = 0;
 	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
@@ -18,7 +20,7 @@ public class ChargingStation {
 		this.brightness = brightness;
 		this.position = p;
 		
-		type = (coins < 0 || power < 0) ? 0 : 1; // lighthouse = 1; danger = 0
+		type = (coins < 0 || power < 0) ? SKULL : LIGHTHOUSE;
 	}
 	
 	public double transferCoins(Drone drone) {

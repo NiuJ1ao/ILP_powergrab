@@ -6,7 +6,7 @@ public class Position {
 	
 	public double latitude;
 	public double longitude;
-	private final static double r = 0.0003;
+	protected final static double r = 0.0003;
 	private static HashMap<Direction, Position> movement = new HashMap<Direction, Position>();
 	
 	/**
