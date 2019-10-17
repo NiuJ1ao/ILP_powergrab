@@ -9,7 +9,6 @@ public class ChargingStation {
 	private String brightness = new String();
 	private Position position;
 	private int type;
-	private double MAXPAYLOAD = 125.0;
 	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
@@ -22,26 +21,30 @@ public class ChargingStation {
 		type = (coins < 0 || power < 0) ? 0 : 1; // lighthouse = 1; danger = 0
 	}
 	
-	public double transferCoins(double amount) {
-		if (coins >= amount) {
-			coins = coins - amount;
-		} else {
-			amount = coins;
-			coins = 0;
-		}
+	public double transferCoins(Drone drone) {
+		double balance = drone.coins;
 		
-		return amount;
+		if (coins + balance < 0) {
+			coins = coins + balance;
+			return coins;
+		} else {
+			balance = coins;
+			coins = 0;
+			return balance;
+		}
 	}
 	
-	public double transferPower(double amount) {
-		if (power >= amount) {
-			power = power - amount;
-		} else {
-			amount = power;
-			power = 0;
-		}
+	public double transferPower(Drone drone) {
+		double balance = drone.power;
 		
-		return amount;	
+		if (power + balance < 0) {
+			power = power + balance;
+			return power;
+		} else {
+			balance = power;
+			power = 0;
+			return balance;
+		}
 	}
 	
 	/***
