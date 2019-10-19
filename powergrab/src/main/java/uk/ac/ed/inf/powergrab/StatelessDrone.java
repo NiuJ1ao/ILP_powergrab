@@ -16,31 +16,34 @@ public class StatelessDrone extends Drone{
 	public Feature strategy() {
 		ArrayList<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
+		List<Direction> validDirection = new ArrayList<Direction>();
+		Direction[] directions = Direction.values();
+		Position nextP;
 		
 		while (!isGameOver()) {
-			List<Direction> validDirection = new ArrayList<Direction>();
-			Direction[] directions = Direction.values();
+			validDirection.clear();
 			boolean isMoved = false;
 			
 			
 			for (Direction d : directions) {
-				Position nextP = position.nextPosition(d);
+				nextP = position.nextPosition(d);
 				isMoved = false;
 				boolean skullInRange = false;
 				
 				if (nextP.inPlayArea()) {
 					for (ChargingStation s : App.stations) {
-						double distance = Util.pythagoreanDistance(nextP, s.position);
-						if (distance <= ACCESSRANGE) {
-							if (s.type == ChargingStation.LIGHTHOUSE) {
-								isMoved = move(d);
-								points.add(positionToPoint(position));
-								transferCoins(s.transferCoins(this));
-								transferPower(s.transferPower(this));
-							} else {
-								skullInRange = true;
+						if (s.coins != 0 && s.power != 0) {
+							double distance = Util.pythagoreanDistance(nextP, s.position);
+							if (distance <= ACCESSRANGE) {
+								if (s.type == ChargingStation.LIGHTHOUSE && move(d)) {
+									isMoved = true;
+									points.add(positionToPoint(position));
+									transferCoins(s.transferCoins(this));
+									transferPower(s.transferPower(this));
+								}
+								skullInRange = s.type == ChargingStation.SKULL;
+								break;
 							}
-							break;
 						}
 					}
 					
@@ -55,7 +58,7 @@ public class StatelessDrone extends Drone{
 			}
 			
 			// Random move
-			if (!isMoved && validDirection.size() !=0) {
+			if (!isMoved && validDirection.size() != 0) {
 				int idx = rnd.nextInt(validDirection.size());
 				Direction nextd = validDirection.get(idx);
 				isMoved = move(nextd);

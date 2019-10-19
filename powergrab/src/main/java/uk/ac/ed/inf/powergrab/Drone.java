@@ -13,6 +13,7 @@ public abstract class Drone {
 	protected Random rnd;
 	private final double POWER_CONSUMPTION = 1.25;
 	private final double MINPAYLOAD = 0.0;
+	private final double MAXPOWER = 250;
 	protected final double ACCESSRANGE = 0.00025;
 	
 	public Drone(Position p, long seed) {
@@ -24,7 +25,7 @@ public abstract class Drone {
 	
 	public boolean move(Direction d) {
 		Position p = position.nextPosition(d);
-		if (p.inPlayArea()) {
+		if (p.inPlayArea() && !isGameOver()) {
 			position = p;
 			power = power - POWER_CONSUMPTION;
 			return true;
@@ -33,11 +34,11 @@ public abstract class Drone {
 	}
 	
 	public void transferCoins(double amount) {
-		coins = (coins + amount <= MINPAYLOAD) ? MINPAYLOAD : coins + amount;
+		coins += amount;
 	}
 	
 	public void transferPower(double amount) {
-		power = (power + amount <= MINPAYLOAD) ? MINPAYLOAD : power + amount;
+		power += amount;
 	}
 	
 	public boolean isGameOver() {

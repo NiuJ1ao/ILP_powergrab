@@ -3,8 +3,8 @@ package uk.ac.ed.inf.powergrab;
 public class ChargingStation { 
 	
 	private String id = new String();
-	private double coins;
-	private double power;
+	protected double coins;
+	protected double power;
 	private String icon = new String();
 	private String brightness = new String();
 	protected final Position position;
@@ -38,10 +38,14 @@ public class ChargingStation {
 	
 	public double transferPower(Drone drone) {
 		double balance = drone.power;
+		double newBalance = balance + power;
 		
-		if (power + balance < 0) {
-			power = power + balance;
-			return power;
+		if (newBalance < 0) {
+			power = newBalance;
+			return -balance;
+		} else if (balance + power >= 250) { 
+			power = balance + power - 250;
+			return 250 - balance;
 		} else {
 			balance = power;
 			power = 0;

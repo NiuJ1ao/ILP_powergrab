@@ -54,17 +54,18 @@ public class App {
     	
     	// Test stateless drone;
     	Feature f = testDrone.strategy();
+    	System.out.println();
     	test.featuresList.add(f);
     	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
     	
+    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
 		try {
-			PrintWriter writer = new PrintWriter("asdf.geojson", "UTF-8");
+			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
 			writer.println(fc.toJson());
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-    	//System.out.println(fc.toJson());
     }
     
     private void downloadMap(String year, String month, String day) throws Exception {
