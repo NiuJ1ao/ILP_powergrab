@@ -7,8 +7,8 @@ public class ChargingStation {
 	private double power;
 	private String icon = new String();
 	private String brightness = new String();
-	private Position position;
-	private int type;
+	protected final Position position;
+	protected final int type;
 	protected static final int LIGHTHOUSE = 1;
 	protected static final int SKULL = 0;
 	
@@ -58,10 +58,6 @@ public class ChargingStation {
 	
 	public String getBrightness() {
 		return brightness;
-	}
-
-	public Position getPosition() {
-		return position;
 	}
 
 	public String getIcon() {

@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import com.mapbox.geojson.*;
@@ -20,9 +22,10 @@ public class App {
 	private String mapSource = new String();
 	protected static List<ChargingStation> stations = new ArrayList<ChargingStation>();
 	protected static Drone testDrone;
+	List<Feature> featuresList = null;
 	
     public static void main( String[] args ) {
-    	
+    	// Parse arguments.
     	String day = args[0];
     	String month = args[1];
     	String year = args[2];
@@ -30,27 +33,38 @@ public class App {
     	long seed = Long.parseLong(args[5]);
     	String droneType = args[6].toLowerCase();
     	
+    	// Initialize drone and APP.
     	App test = new App();
-    	if (droneType == "stateless") {
+    	if (droneType.equals("stateless")) {
     		testDrone = new StatelessDrone(initDronePos, seed);
-    	} else if (droneType == "stateful") {
+    	} else if (droneType.equals("stateful")) {
     		testDrone = new StatefulDrone(initDronePos, seed);
     	} else {
     		System.out.println("Type not found");
     		return;
     	}
     	
+    	// Download Map and parse it.
     	try {
 			test.downloadMap(year, month , day);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
     	test.praseSource();
-    	int i = 0;
-    	for (ChargingStation s : stations) {
-    		System.out.println(s.getId() + "---" + ++i);
-    	}
     	
+    	// Test stateless drone;
+    	Feature f = testDrone.strategy();
+    	test.featuresList.add(f);
+    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
+    	
+		try {
+			PrintWriter writer = new PrintWriter("asdf.geojson", "UTF-8");
+			writer.println(fc.toJson());
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	//System.out.println(fc.toJson());
     }
     
     private void downloadMap(String year, String month, String day) throws Exception {
@@ -78,7 +92,7 @@ public class App {
     
     private void praseSource() {
 	    FeatureCollection fc = FeatureCollection.fromJson(mapSource);
-    	List<Feature> featuresList  = fc.features();
+    	featuresList  = fc.features();
     	for (Feature f : featuresList) {
     		String id = f.getProperty("id").getAsString();
     		double coins = f.getProperty("coins").getAsFloat();

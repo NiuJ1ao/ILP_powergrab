@@ -15,8 +15,9 @@ public class Position {
 	static {
 		double radian = 0;
 		double increment = Math.PI/8;
+		Direction[] directions = Direction.values();
 		
-		for (Direction d : Direction.values()) {
+		for (Direction d : directions) {
 			movement.put(d, new Position(r * Math.sin(radian), r * Math.cos(radian)));
 			radian += increment;
 		}
