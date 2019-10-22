@@ -49,14 +49,14 @@ public class MyTest {
 	
 	@Test
 	public void testMove() {
-		testDrone.move(Direction.N);
+//		testDrone.move(Direction.N);
 		assertTrue(approxEq(testDrone.power, 250-1.25));
 	}
 	
 	@Test
 	public void testStationTransferCoins() {
 		station.coins = 20;
-		testDrone.move(Direction.S);
+//		testDrone.move(Direction.S);
 		System.out.println(station.coins);
 		station.transferCoins(testDrone);
 		System.out.println(station.coins);
@@ -74,7 +74,7 @@ public class MyTest {
 	@Test
 	public void testStationTransferPower() {
 		station.power = 30;
-		testDrone.move(Direction.S);
+//		testDrone.move(Direction.S);
 		station.transferPower(testDrone);
 		station.power = -270;
 		station.transferPower(testDrone);

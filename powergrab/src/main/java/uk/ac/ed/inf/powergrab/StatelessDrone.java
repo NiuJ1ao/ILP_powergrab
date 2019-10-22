@@ -13,14 +13,12 @@ public class StatelessDrone extends Drone{
 	}
 	
 	@Override
-	public Feature strategy() {
-		ArrayList<Point> points = new ArrayList<Point>();
+	public Feature strategy() throws Exception {
+		List<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
 		List<Direction> validDirection = new ArrayList<Direction>();
 		Direction[] directions = Direction.values();
-		Position nextP;
-		
-		StationsManager mManager = StationsManager.getInstance();
+//		Position nextP;
 		
 		while (!isGameOver()) {
 			validDirection.clear();
@@ -28,22 +26,23 @@ public class StatelessDrone extends Drone{
 			
 			
 			for (Direction d : directions) {
-				nextP = position.nextPosition(d);
+//				nextP = position.nextPosition(d);
 				isMoved = false;
 				boolean skullInRange = false;
-			
-				if (nextP.inPlayArea()) {
+//			
+//				if (nextP.inPlayArea()) {
 //					for (ChargingStation s : App.stations) {
 //						if (s.coins != 0 && s.power != 0) {
 //							double distance = Util.pythagoreanDistance(nextP, s.position);
-//							if (distance <= ACCESSRANGE) {
-//								if (s.type == ChargingStation.LIGHTHOUSE) {
+//							if (distance <= Constants.ACCESS_RANGE) {
+//								if (s.type == ChargingStation.SKULL) {
+//									skullInRange = true;
+//								} else if (s.type == ChargingStation.LIGHTHOUSE) {
 //									isMoved = move(d);
 //									points.add(positionToPoint(position));
 //									s.transferCoins(this);
 //									s.transferPower(this);
 //								}
-//								skullInRange = s.type == ChargingStation.SKULL;
 //								break;
 //							}
 //						}
@@ -52,14 +51,29 @@ public class StatelessDrone extends Drone{
 //					if (!skullInRange) {
 //						validDirection.add(d);
 //					}
-					mManager.computeDistance(d, points);
-					
-					
-				}
+//				}
+//				
+//				if (isMoved) {
+//					break;
+//				}
+				Drone prevStatus = this;
+				isMoved = move(d);
 				
 				if (isMoved) {
-					break;
+					if (closestStation.type == ChargingStation.LIGHTHOUSE && closestStation.getDistance() < Constants.ACCESS_RANGE) {
+						points.add(positionToPoint(position));
+						break;
+					} else if (closestStation.type == ChargingStation.SKULL && closestStation.getDistance() < Constants.ACCESS_RANGE){
+						rollBack(prevStatus);
+						skullInRange = true;
+					} else {
+						rollBack(prevStatus);
+						if (!skullInRange) {
+							validDirection.add(d);
+						}
+					}
 				}
+				
 			}
 			
 			// Random move
@@ -70,15 +84,15 @@ public class StatelessDrone extends Drone{
 				points.add(positionToPoint(position));
 			}
 			
-			// No valid direction
-			if (!isMoved) {
-				int idx = rnd.nextInt(directions.length);
-				Direction nextd = directions[idx];
-				while (!move(nextd) && !isGameOver())
-				points.add(positionToPoint(position));
-			}
+//			// No valid direction
+//			if (!isMoved) {
+//				int idx = rnd.nextInt(directions.length);
+//				Direction nextd = directions[idx];
+//				while (move(nextd) || isGameOver())
+//				points.add(positionToPoint(position));
+//			}
 			
-			//System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+			System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 		}
 		
 		LineString ls = LineString.fromLngLats(points);

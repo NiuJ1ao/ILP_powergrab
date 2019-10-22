@@ -52,23 +52,35 @@ public class App {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    	test.praseSource();
+    	test.parseSource();
     	
     	// Test stateless drone;
-    	Feature f = testDrone.strategy();
-    	System.out.println();
-    	test.featuresList.add(f);
-    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
-    
-    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
+//    	Feature f = null;
+//		try {
+//			f = testDrone.strategy();
+//		} catch (Exception e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
+//    	test.featuresList.add(f);
+//    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
+//    
+//    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
+//		try {
+//			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+//			writer.println(fc.toJson());
+//			writer.close();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
 		try {
-			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-			writer.println(fc.toJson());
-			writer.close();
-		} catch (IOException e) {
+			testDrone.move(Direction.S);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+    	System.out.println(testDrone.closestStation.type + ": " + testDrone.closestStation.getId());
+    	
 		long endTime = System.currentTimeMillis();
 		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
     }
@@ -96,7 +108,7 @@ public class App {
     	mapSource = mapBuilder.toString();
     }
     
-    private void praseSource() {
+    private void parseSource() {
 	    FeatureCollection fc = FeatureCollection.fromJson(mapSource);
     	featuresList  = fc.features();
     	for (Feature f : featuresList) {
@@ -110,6 +122,5 @@ public class App {
     		ChargingStation station = new ChargingStation(id, coins, power, icon, brightness, p);
     		stations.add(station);
     	}
-    	System.out.println(stations.size());
     }
 }

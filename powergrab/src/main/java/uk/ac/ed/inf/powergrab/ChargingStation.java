@@ -9,13 +9,9 @@ public class ChargingStation {
 	private String brightness = new String();
 	protected final Position position;
 	protected final int type;
+	private double distanceToDrone = 0;
 	protected static final int LIGHTHOUSE = 1;
 	protected static final int SKULL = 0;
-	
-	private Thread mThread;
-	private Runnable mRunnable;
-	private StationsManager sManager = StationsManager.getInstance();
-	
 	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
@@ -25,8 +21,6 @@ public class ChargingStation {
 		this.brightness = brightness;
 		this.position = p;		
 		type = (coins < 0 || power < 0) ? SKULL : LIGHTHOUSE;
-		
-		mRunnable = new StationRunnable(this, App.testDrone);
 	}
 
 	public void transferCoins(Drone drone) {
@@ -37,6 +31,11 @@ public class ChargingStation {
 	public void transferPower(Drone drone) {
 		double amount = drone.transferPower(power);
 		power -= amount;
+	}
+	
+	public double distanceToDrone(Position drone) {
+		distanceToDrone = Util.pythagoreanDistance(drone, this.position);
+		return distanceToDrone;
 	}
 	
 	/***
@@ -54,23 +53,7 @@ public class ChargingStation {
 		return icon;
 	}
 	
-	public int getType() {
-		return type;
-	}
-
-	public void setThread(Thread currentThread) {
-		mThread = currentThread;
-	}
-	
-	public Thread getThread() {
-		return mThread;
-	}
-	
-	public Runnable getRunnable() {
-		return mRunnable;
-	}
-	
-	public void handleRunnableStates(int state) {
-		sManager.handleState(this, state);
+	public double getDistance() {
+		return distanceToDrone;
 	}
 }
