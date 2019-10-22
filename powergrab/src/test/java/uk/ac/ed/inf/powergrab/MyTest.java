@@ -10,12 +10,13 @@ public class MyTest {
 		final double epsilon = 1.0E-12d;
 		return Math.abs(d0 - d1) < epsilon;
 	}
-	
+
 	boolean approxEq(Position p0, Position p1) {
 		return approxEq(p0.latitude, p1.latitude) && approxEq(p0.longitude, p1.longitude); 
 	}
     
-	Drone testDrone = new StatelessDrone(new Position(1,1), 1);
+	Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
+	ChargingStation station = new ChargingStation("1", 0, 0, "1", "1", new Position(1,1));
 	@Test
 	public void testPosCoins() {
 		testDrone.transferCoins(10.0);
@@ -31,7 +32,7 @@ public class MyTest {
 	@Test
 	public void testPosPower() {
 		testDrone.transferPower(20.0);
-		assertTrue(approxEq(testDrone.power, 270.0));
+		assertTrue(approxEq(testDrone.power, 250.0));
 	}
 	
 	@Test
@@ -48,14 +49,36 @@ public class MyTest {
 	
 	@Test
 	public void testMove() {
-		testDrone.position = new Position(55.944425, -3.188396);
 		testDrone.move(Direction.N);
 		assertTrue(approxEq(testDrone.power, 250-1.25));
 	}
-//	
-//	@Test
-//	public void testStationCoins() {
-//		
-//	}
+	
+	@Test
+	public void testStationTransferCoins() {
+		station.coins = 20;
+		testDrone.move(Direction.S);
+		System.out.println(station.coins);
+		station.transferCoins(testDrone);
+		System.out.println(station.coins);
+		station.coins = -15;
+		System.out.println(station.coins);
+		station.transferCoins(testDrone);
+		System.out.println(station.coins);
+		station.coins = -20;
+		System.out.println(station.coins);
+		station.transferCoins(testDrone);
+		System.out.println(station.coins);
+		assertTrue(approxEq(station.coins, -15));
+	}
+	
+	@Test
+	public void testStationTransferPower() {
+		station.power = 30;
+		testDrone.move(Direction.S);
+		station.transferPower(testDrone);
+		station.power = -270;
+		station.transferPower(testDrone);
+		assertTrue(approxEq(station.power, -20));
+	}
 }
 

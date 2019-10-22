@@ -20,6 +20,8 @@ public class StatelessDrone extends Drone{
 		Direction[] directions = Direction.values();
 		Position nextP;
 		
+		StationsManager mManager = StationsManager.getInstance();
+		
 		while (!isGameOver()) {
 			validDirection.clear();
 			boolean isMoved = false;
@@ -29,27 +31,30 @@ public class StatelessDrone extends Drone{
 				nextP = position.nextPosition(d);
 				isMoved = false;
 				boolean skullInRange = false;
-				
+			
 				if (nextP.inPlayArea()) {
-					for (ChargingStation s : App.stations) {
-						if (s.coins != 0 && s.power != 0) {
-							double distance = Util.pythagoreanDistance(nextP, s.position);
-							if (distance <= ACCESSRANGE) {
-								if (s.type == ChargingStation.LIGHTHOUSE && move(d)) {
-									isMoved = true;
-									points.add(positionToPoint(position));
-									transferCoins(s.transferCoins(this));
-									transferPower(s.transferPower(this));
-								}
-								skullInRange = s.type == ChargingStation.SKULL;
-								break;
-							}
-						}
-					}
+//					for (ChargingStation s : App.stations) {
+//						if (s.coins != 0 && s.power != 0) {
+//							double distance = Util.pythagoreanDistance(nextP, s.position);
+//							if (distance <= ACCESSRANGE) {
+//								if (s.type == ChargingStation.LIGHTHOUSE) {
+//									isMoved = move(d);
+//									points.add(positionToPoint(position));
+//									s.transferCoins(this);
+//									s.transferPower(this);
+//								}
+//								skullInRange = s.type == ChargingStation.SKULL;
+//								break;
+//							}
+//						}
+//					}
+//					
+//					if (!skullInRange) {
+//						validDirection.add(d);
+//					}
+					mManager.computeDistance(d, points);
 					
-					if (!skullInRange) {
-						validDirection.add(d);
-					}
+					
 				}
 				
 				if (isMoved) {
@@ -66,20 +71,18 @@ public class StatelessDrone extends Drone{
 			}
 			
 			// No valid direction
-			if (!isMoved ) {
+			if (!isMoved) {
 				int idx = rnd.nextInt(directions.length);
 				Direction nextd = directions[idx];
-				while (!move(nextd))
+				while (!move(nextd) && !isGameOver())
 				points.add(positionToPoint(position));
 			}
 			
-			System.out.println(points.size());
+			//System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 		}
 		
 		LineString ls = LineString.fromLngLats(points);
 		Feature f = Feature.fromGeometry(ls, new JsonObject());
 		return f;
 	}
-	
-	
 }

@@ -25,6 +25,8 @@ public class App {
 	List<Feature> featuresList = null;
 	
     public static void main( String[] args ) {
+    	long startTime = System.currentTimeMillis();
+    	
     	// Parse arguments.
     	String day = args[0];
     	String month = args[1];
@@ -57,7 +59,7 @@ public class App {
     	System.out.println();
     	test.featuresList.add(f);
     	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
-    	
+    
     	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
 		try {
 			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
@@ -66,6 +68,9 @@ public class App {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
+		long endTime = System.currentTimeMillis();
+		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
     }
     
     private void downloadMap(String year, String month, String day) throws Exception {
@@ -105,5 +110,6 @@ public class App {
     		ChargingStation station = new ChargingStation(id, coins, power, icon, brightness, p);
     		stations.add(station);
     	}
+    	System.out.println(stations.size());
     }
 }

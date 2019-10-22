@@ -12,45 +12,31 @@ public class ChargingStation {
 	protected static final int LIGHTHOUSE = 1;
 	protected static final int SKULL = 0;
 	
+	private Thread mThread;
+	private Runnable mRunnable;
+	private StationsManager sManager = StationsManager.getInstance();
+	
+	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
 		this.coins = coins;
 		this.power = power;
 		this.icon = icon;
 		this.brightness = brightness;
-		this.position = p;
-		
+		this.position = p;		
 		type = (coins < 0 || power < 0) ? SKULL : LIGHTHOUSE;
+		
+		mRunnable = new StationRunnable(this, App.testDrone);
+	}
+
+	public void transferCoins(Drone drone) {
+		double amount = drone.transferCoins(coins);
+		coins -= amount;
 	}
 	
-	public double transferCoins(Drone drone) {
-		double balance = drone.coins;
-		
-		if (coins + balance < 0) {
-			coins = coins + balance;
-			return coins;
-		} else {
-			balance = coins;
-			coins = 0;
-			return balance;
-		}
-	}
-	
-	public double transferPower(Drone drone) {
-		double balance = drone.power;
-		double newBalance = balance + power;
-		
-		if (newBalance < 0) {
-			power = newBalance;
-			return -balance;
-		} else if (balance + power >= 250) { 
-			power = balance + power - 250;
-			return 250 - balance;
-		} else {
-			balance = power;
-			power = 0;
-			return balance;
-		}
+	public void transferPower(Drone drone) {
+		double amount = drone.transferPower(power);
+		power -= amount;
 	}
 	
 	/***
@@ -70,5 +56,21 @@ public class ChargingStation {
 	
 	public int getType() {
 		return type;
+	}
+
+	public void setThread(Thread currentThread) {
+		mThread = currentThread;
+	}
+	
+	public Thread getThread() {
+		return mThread;
+	}
+	
+	public Runnable getRunnable() {
+		return mRunnable;
+	}
+	
+	public void handleRunnableStates(int state) {
+		sManager.handleState(this, state);
 	}
 }
