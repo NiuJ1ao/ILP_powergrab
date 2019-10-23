@@ -55,24 +55,24 @@ public class App {
     	test.parseSource();
     	
     	// Test stateless drone;
-//    	Feature f = null;
-//		try {
-//			f = testDrone.strategy();
-//		} catch (Exception e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//    	test.featuresList.add(f);
-//    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
-//    
-//    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
-//		try {
-//			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-//			writer.println(fc.toJson());
-//			writer.close();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+    	Feature f = null;
+		try {
+			f = testDrone.strategy();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	test.featuresList.add(f);
+    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
+    
+    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
+		try {
+			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+			writer.println(fc.toJson());
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		try {
 			testDrone.move(Direction.S);
 		} catch (Exception e) {
@@ -111,8 +111,8 @@ public class App {
     private void parseSource() {
 	    FeatureCollection fc = FeatureCollection.fromJson(mapSource);
     	featuresList  = fc.features();
-    	for (Feature f : featuresList) {
-    		String id = f.getProperty("id").getAsString();
+    	for (final Feature f : featuresList) {
+			String id = f.getProperty("id").getAsString();
     		double coins = f.getProperty("coins").getAsFloat();
     		double power = f.getProperty("power").getAsFloat();
     		String icon = f.getProperty("marker-symbol").getAsString();
@@ -122,5 +122,7 @@ public class App {
     		ChargingStation station = new ChargingStation(id, coins, power, icon, brightness, p);
     		stations.add(station);
     	}
+		
     }
+    
 }

@@ -12,6 +12,7 @@ public class ChargingStation {
 	private double distanceToDrone = 0;
 	protected static final int LIGHTHOUSE = 1;
 	protected static final int SKULL = 0;
+	public Thread r;
 	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
@@ -21,6 +22,7 @@ public class ChargingStation {
 		this.brightness = brightness;
 		this.position = p;		
 		type = (coins < 0 || power < 0) ? SKULL : LIGHTHOUSE;
+		r = new Thread(new MyRunnable(this));
 	}
 
 	public void transferCoins(Drone drone) {
@@ -35,6 +37,11 @@ public class ChargingStation {
 	
 	public double distanceToDrone(Position drone) {
 		distanceToDrone = Util.pythagoreanDistance(drone, this.position);
+		return distanceToDrone;
+	}
+	
+	public double distanceToDrone() {
+		distanceToDrone = Util.pythagoreanDistance(App.testDrone.position, this.position);
 		return distanceToDrone;
 	}
 	

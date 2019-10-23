@@ -15,6 +15,7 @@ public class ComputeDistance implements Callable<ChargingStation> {
 
 	@Override
 	public ChargingStation call() throws Exception {
+		System.out.println(Thread.currentThread());
 		ChargingStation minStation = mStations.get(0);
 		double min = minStation.distanceToDrone(mDrone);
 		double distance = 0;

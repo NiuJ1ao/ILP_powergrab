@@ -51,45 +51,41 @@ public abstract class Drone {
 	}
 	
 	public ChargingStation findClosestStation(Position p) throws InterruptedException, ExecutionException {
-		//List<Future<ChargingStation>> futures = executorService.invokeAll(createSubtasks(p));
-		List<Future<ChargingStation>> futures = new ArrayList<Future<ChargingStation>>();
-		List<ComputeDistance> callables = createSubtasks(p);
-		
-		for(int i=0; i< callables.size(); i++){
-            //submit Callable tasks to be executed by thread pool
-            Future<ChargingStation> future = executorService.submit(callables.get(i));
-            //add Future to the list, we can get return value using Future
-            futures.add(future);
-        }
-
-		ChargingStation minStation = futures.get(0).get();
-		for (int i=1; i<5; i++) {
-			ChargingStation curStation = futures.get(i).get();
-			if (curStation.getDistance() < minStation.getDistance()) {
-				minStation = curStation;
-			}
-		}
-		
-		executorService.shutdown();
-//		ChargingStation minStation = App.stations.get(0);
-//		minStation.distanceToDrone(this.position);
-//		for (int i=1; i<App.stations.size(); i++) {
-//			if (App.stations.get(i).distanceToDrone(this.position) < minStation.getDistance()) {
-//				minStation = App.stations.get(i);
+//		List<Future<ChargingStation>> futures = executorService.invokeAll(createSubtasks(p));
+//
+//		ChargingStation minStation = futures.get(0).get();
+//		for (int i=1; i<5; i++) {
+//			ChargingStation curStation = futures.get(i).get();
+//			if (curStation.getDistance() < minStation.getDistance()) {
+//				minStation = curStation;
 //			}
 //		}
+//		
+//		executorService.shutdown();
 		
+		createSubtasks(p);
+		ChargingStation minStation = App.stations.get(0);
+		minStation.distanceToDrone(this.position);
+		for (int i=1; i<App.stations.size(); i++) {
+			if (App.stations.get(i).distanceToDrone(this.position) < minStation.getDistance()) {
+				minStation = App.stations.get(i);
+			}
+		}
+
 		return minStation;
 	}
 	
-	private List<ComputeDistance> createSubtasks(Position p) {
+	private List<ComputeDistance> createSubtasks(final Position p) {
 		List<ChargingStation> mStations = App.stations;
 		List<ComputeDistance> dividedTasks = new ArrayList<>();
-		dividedTasks.add(new ComputeDistance(mStations.subList(0, 10), p));
-		dividedTasks.add(new ComputeDistance(mStations.subList(10, 20), p));
-		dividedTasks.add(new ComputeDistance(mStations.subList(20, 30), p));
-		dividedTasks.add(new ComputeDistance(mStations.subList(30, 40), p));
-		dividedTasks.add(new ComputeDistance(mStations.subList(40, 50), p));
+//		dividedTasks.add(new ComputeDistance(mStations.subList(0, 10), p));
+//		dividedTasks.add(new ComputeDistance(mStations.subList(10, 20), p));
+//		dividedTasks.add(new ComputeDistance(mStations.subList(20, 30), p));
+//		dividedTasks.add(new ComputeDistance(mStations.subList(30, 40), p));
+//		dividedTasks.add(new ComputeDistance(mStations.subList(40, 50), p));
+		for (final ChargingStation s : mStations) {
+			s.r.start();
+		}
 		return dividedTasks;	
 	}
 	

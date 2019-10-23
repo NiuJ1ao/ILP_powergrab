@@ -84,13 +84,13 @@ public class StatelessDrone extends Drone{
 				points.add(positionToPoint(position));
 			}
 			
-//			// No valid direction
-//			if (!isMoved) {
-//				int idx = rnd.nextInt(directions.length);
-//				Direction nextd = directions[idx];
-//				while (move(nextd) || isGameOver())
-//				points.add(positionToPoint(position));
-//			}
+			// No valid direction
+			if (!isMoved) {
+				int idx = rnd.nextInt(directions.length);
+				Direction nextd = directions[idx];
+				while (move(nextd) || isGameOver())
+				points.add(positionToPoint(position));
+			}
 			
 			System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 		}
