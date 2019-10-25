@@ -13,84 +13,63 @@ public class StatelessDrone extends Drone{
 	}
 	
 	@Override
+	public boolean move(Direction d) {
+		Position p = position.nextPosition(d);
+			
+		if (p.inPlayArea()) {			
+			position = p;
+			power = power - POWER_CONSUMPTION;
+			steps++;
+			
+			return true;
+		}
+		return false;
+	}
+	
+	@Override
 	public Feature strategy() throws Exception {
 		List<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
 		List<Direction> validDirection = new ArrayList<Direction>();
 		Direction[] directions = Direction.values();
-//		Position nextP;
+		Position nextP;
+		ChargingStation nearestStation;
+		boolean isMoved = false;
+		
 		
 		while (!isGameOver()) {
 			validDirection.clear();
-			boolean isMoved = false;
-			
+			isMoved = false;
 			
 			for (Direction d : directions) {
-//				nextP = position.nextPosition(d);
-				isMoved = false;
-				boolean skullInRange = false;
-//			
-//				if (nextP.inPlayArea()) {
-//					for (ChargingStation s : App.stations) {
-//						if (s.coins != 0 && s.power != 0) {
-//							double distance = Util.pythagoreanDistance(nextP, s.position);
-//							if (distance <= Constants.ACCESS_RANGE) {
-//								if (s.type == ChargingStation.SKULL) {
-//									skullInRange = true;
-//								} else if (s.type == ChargingStation.LIGHTHOUSE) {
-//									isMoved = move(d);
-//									points.add(positionToPoint(position));
-//									s.transferCoins(this);
-//									s.transferPower(this);
-//								}
-//								break;
-//							}
-//						}
-//					}
-//					
-//					if (!skullInRange) {
-//						validDirection.add(d);
-//					}
-//				}
-//				
-//				if (isMoved) {
-//					break;
-//				}
-				Drone prevStatus = this;
-				isMoved = move(d);
-				
-				if (isMoved) {
-					if (closestStation.type == ChargingStation.LIGHTHOUSE && closestStation.getDistance() < Constants.ACCESS_RANGE) {
-						points.add(positionToPoint(position));
-						break;
-					} else if (closestStation.type == ChargingStation.SKULL && closestStation.getDistance() < Constants.ACCESS_RANGE){
-						rollBack(prevStatus);
-						skullInRange = true;
-					} else {
-						rollBack(prevStatus);
-						if (!skullInRange) {
-							validDirection.add(d);
+				nextP = position.nextPosition(d);
+			
+				if (nextP.inPlayArea()) {		
+					nearestStation = findNearestStation(nextP);
+					
+					if (nearestStation.distanceToDrone <= Constants.ACCESS_RANGE && nearestStation.coins != 0) {
+						if (nearestStation.type == ChargingStation.LIGHTHOUSE) {
+							isMoved = move(d);
+							nearestStation.transferCoins(this);
+							nearestStation.transferPower(this);
+							points.add(positionToPoint(position));
+							break;
 						}
 					}
+					
+					if (nearestStation.type != ChargingStation.SKULL) {
+						validDirection.add(d);
+					}
 				}
-				
 			}
 			
 			// Random move
-			if (!isMoved && validDirection.size() != 0) {
+			if (!isMoved && !validDirection.isEmpty()) {
 				int idx = rnd.nextInt(validDirection.size());
 				Direction nextd = validDirection.get(idx);
-				isMoved = move(nextd);
+				isMoved = super.move(nextd);
 				points.add(positionToPoint(position));
 			}
-			
-//			// No valid direction
-//			if (!isMoved) {
-//				int idx = rnd.nextInt(directions.length);
-//				Direction nextd = directions[idx];
-//				while (move(nextd) || isGameOver())
-//				points.add(positionToPoint(position));
-//			}
 			
 			System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 		}

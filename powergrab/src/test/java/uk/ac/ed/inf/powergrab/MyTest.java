@@ -17,68 +17,77 @@ public class MyTest {
     
 	Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
 	ChargingStation station = new ChargingStation("1", 0, 0, "1", "1", new Position(1,1));
+
 	@Test
-	public void testPosCoins() {
-		testDrone.transferCoins(10.0);
-		assertTrue(approxEq(testDrone.coins, 10.0));
+	public void testTransfer() {
+		station.power = 200;
+		station.transferPower(testDrone);
+		System.out.println(station.power);
+		station.power = -260;
+		station.transferPower(testDrone);
+		System.out.println(station.power);
+		station.power = 300;
+		station.transferPower(testDrone);
+		System.out.println(station.power);
+		assertTrue(approxEq(testDrone.power, 250));
 	}
 	
-	@Test
-	public void testNegCoins() {
-		testDrone.transferCoins(-20.0);
-		assertTrue(approxEq(testDrone.coins, 0.0));
-	}
-	
-	@Test
-	public void testPosPower() {
-		testDrone.transferPower(20.0);
-		assertTrue(approxEq(testDrone.power, 250.0));
-	}
-	
-	@Test
-	public void testNegPower() {
-		testDrone.transferPower(-200.0);
-		assertTrue(approxEq(testDrone.power, 50.0));
-	}
-	
-	@Test
-	public void testNegPower1() {
-		testDrone.transferPower(-270.0);
-		assertTrue(approxEq(testDrone.power, 0.0));
-	}
-	
-	@Test
-	public void testMove() {
+//	@Test
+//	public void testNegCoins() {
+//		testDrone.transferCoins(-20.0);
+//		assertTrue(approxEq(testDrone.coins, 0.0));
+//	}
+//	
+//	@Test
+//	public void testPosPower() {
+//		testDrone.transferPower(20.0);
+//		assertTrue(approxEq(testDrone.power, 250.0));
+//	}
+//	
+//	@Test
+//	public void testNegPower() {
+//		testDrone.transferPower(-200.0);
+//		assertTrue(approxEq(testDrone.power, 50.0));
+//	}
+//	
+//	@Test
+//	public void testNegPower1() {
+//		testDrone.transferPower(-270.0);
+//		assertTrue(approxEq(testDrone.power, 0.0));
+//	}
+//	
+//	@Test
+//	public void testMove() {
 //		testDrone.move(Direction.N);
-		assertTrue(approxEq(testDrone.power, 250-1.25));
-	}
-	
-	@Test
-	public void testStationTransferCoins() {
-		station.coins = 20;
+//		assertTrue(approxEq(testDrone.power, 250-1.25));
+//	}
+//	
+//	@Test
+//	public void testStationTransferCoins() {
+//		station.coins = 20;
 //		testDrone.move(Direction.S);
-		System.out.println(station.coins);
-		station.transferCoins(testDrone);
-		System.out.println(station.coins);
-		station.coins = -15;
-		System.out.println(station.coins);
-		station.transferCoins(testDrone);
-		System.out.println(station.coins);
-		station.coins = -20;
-		System.out.println(station.coins);
-		station.transferCoins(testDrone);
-		System.out.println(station.coins);
-		assertTrue(approxEq(station.coins, -15));
-	}
-	
-	@Test
-	public void testStationTransferPower() {
-		station.power = 30;
+//		System.out.println(station.coins);
+//		station.transferCoins(testDrone);
+//		System.out.println(station.coins);
+//		station.coins = -15;
+//		System.out.println(station.coins);
+//		station.transferCoins(testDrone);
+//		System.out.println(station.coins);
+//		station.coins = -20;
+//		System.out.println(station.coins);
+//		station.transferCoins(testDrone);
+//		System.out.println(station.coins);
+//		assertTrue(approxEq(station.coins, -15));
+//	}
+//	
+//	@Test
+//	public void testStationTransferPower() {
+//		station.power = 30;
 //		testDrone.move(Direction.S);
-		station.transferPower(testDrone);
-		station.power = -270;
-		station.transferPower(testDrone);
-		assertTrue(approxEq(station.power, -20));
-	}
+//		station.transferPower(testDrone);
+//		station.power = -270;
+//		station.transferPower(testDrone);
+//		assertTrue(approxEq(station.power, -20));
+//	}
 }
 

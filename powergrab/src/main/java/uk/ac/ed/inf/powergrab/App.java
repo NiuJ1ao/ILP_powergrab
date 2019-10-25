@@ -55,31 +55,24 @@ public class App {
     	test.parseSource();
     	
     	// Test stateless drone;
-//    	Feature f = null;
-//		try {
-//			f = testDrone.strategy();
-//		} catch (Exception e1) {
-//			// TODO Auto-generated catch block
-//			e1.printStackTrace();
-//		}
-//    	test.featuresList.add(f);
-//    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
-//    
-//    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
-//		try {
-//			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-//			writer.println(fc.toJson());
-//			writer.close();
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
+    	Feature f = null;
 		try {
-			testDrone.move(Direction.S);
-		} catch (Exception e) {
+			f = testDrone.strategy();
+		} catch (Exception e1) {
 			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+    	test.featuresList.add(f);
+    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
+    
+    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
+		try {
+			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
+			writer.println(fc.toJson());
+			writer.close();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-    	System.out.println(testDrone.closestStation.type + ": " + testDrone.closestStation.getId());
     	
 		long endTime = System.currentTimeMillis();
 		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
