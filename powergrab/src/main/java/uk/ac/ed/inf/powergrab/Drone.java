@@ -1,13 +1,7 @@
 package uk.ac.ed.inf.powergrab;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 
@@ -19,9 +13,7 @@ public abstract class Drone {
 	public double power;
 	protected Random rnd;
 	protected final double POWER_CONSUMPTION = 1.25;
-	private int steps;
-	private ExecutorService executorService = Executors.newFixedThreadPool(5);
-	protected ChargingStation closestStation = null;
+	protected int steps;
 	
 	public Drone(Position p, long seed) {
 		this.position = p;
@@ -31,7 +23,7 @@ public abstract class Drone {
 		this.steps = 0;
 	}
 	
-	public boolean move(Direction d) throws Exception {
+	public boolean move(Direction d) {
 		Position p = position.nextPosition(d);
 			
 		if (p.inPlayArea()) {			
@@ -39,54 +31,33 @@ public abstract class Drone {
 			power = power - POWER_CONSUMPTION;
 			steps++;
 			
-			closestStation = findClosestStation(p);
-			if (closestStation.getDistance() < Constants.ACCESS_RANGE) {
-				closestStation.transferCoins(this);
-				closestStation.transferPower(this);
+			ChargingStation s = findNearestStation(position);
+			if (s.distanceToDrone <= Constants.ACCESS_RANGE) {
+				s.transferCoins(this);
+				s.transferPower(this);
 			}
-			
 			return true;
 		}
 		return false;
 	}
 	
-	public ChargingStation findClosestStation(Position p) throws InterruptedException, ExecutionException {
-//		List<Future<ChargingStation>> futures = executorService.invokeAll(createSubtasks(p));
-//
-//		ChargingStation minStation = futures.get(0).get();
-//		for (int i=1; i<5; i++) {
-//			ChargingStation curStation = futures.get(i).get();
-//			if (curStation.getDistance() < minStation.getDistance()) {
-//				minStation = curStation;
-//			}
-//		}
-//		
-//		executorService.shutdown();
+	public ChargingStation findNearestStation(Position p){
+		double distance = 0;
+		List<ChargingStation> stations = App.stations;
+		int length = stations.size();
 		
-		createSubtasks(p);
-		ChargingStation minStation = App.stations.get(0);
-		minStation.distanceToDrone(this.position);
-		for (int i=1; i<App.stations.size(); i++) {
-			if (App.stations.get(i).distanceToDrone(this.position) < minStation.getDistance()) {
-				minStation = App.stations.get(i);
+		ChargingStation nearestStation = stations.get(0);
+		double minDistance = nearestStation.distanceToDrone(p);
+		for (int i=1; i<length; i++) {
+			ChargingStation curStation = stations.get(i);
+			distance = curStation.distanceToDrone(p);
+			if (distance < minDistance) {
+				minDistance = distance;
+				nearestStation = curStation;
 			}
 		}
-
-		return minStation;
-	}
-	
-	private List<ComputeDistance> createSubtasks(final Position p) {
-		List<ChargingStation> mStations = App.stations;
-		List<ComputeDistance> dividedTasks = new ArrayList<>();
-//		dividedTasks.add(new ComputeDistance(mStations.subList(0, 10), p));
-//		dividedTasks.add(new ComputeDistance(mStations.subList(10, 20), p));
-//		dividedTasks.add(new ComputeDistance(mStations.subList(20, 30), p));
-//		dividedTasks.add(new ComputeDistance(mStations.subList(30, 40), p));
-//		dividedTasks.add(new ComputeDistance(mStations.subList(40, 50), p));
-		for (final ChargingStation s : mStations) {
-			s.r.start();
-		}
-		return dividedTasks;	
+		
+		return nearestStation;
 	}
 	
 	public double transferCoins(double amount) {
@@ -125,13 +96,6 @@ public abstract class Drone {
 	
 	public Point positionToPoint(Position position) {
 		return Point.fromLngLat(position.longitude, position.latitude);
-	}
-	
-	public void rollBack (Drone prevStatus) {
-		this.coins = prevStatus.coins;
-		this.position = prevStatus.position;
-		this.power = prevStatus.power;
-		this.steps = prevStatus.steps;
 	}
 	
 	public abstract Feature strategy() throws Exception;

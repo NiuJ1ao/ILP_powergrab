@@ -8,11 +8,10 @@ public class ChargingStation {
 	private String icon = new String();
 	private String brightness = new String();
 	protected final Position position;
-	protected final int type;
-	private double distanceToDrone = 0;
-	protected static final int LIGHTHOUSE = 1;
-	protected static final int SKULL = 0;
-	public Thread r;
+	protected final boolean type;
+	protected double distanceToDrone;
+	protected static final boolean LIGHTHOUSE = true;
+	protected static final boolean SKULL = false;
 	
 	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
 		this.id = id;
@@ -21,8 +20,7 @@ public class ChargingStation {
 		this.icon = icon;
 		this.brightness = brightness;
 		this.position = p;		
-		type = (coins < 0 || power < 0) ? SKULL : LIGHTHOUSE;
-		r = new Thread(new MyRunnable(this));
+		type = coins > 0 || power > 0;
 	}
 
 	public void transferCoins(Drone drone) {
@@ -36,7 +34,7 @@ public class ChargingStation {
 	}
 	
 	public double distanceToDrone(Position drone) {
-		distanceToDrone = Util.pythagoreanDistance(drone, this.position);
+		distanceToDrone = Util.pythagoreanDistance(drone, position);
 		return distanceToDrone;
 	}
 	
@@ -58,9 +56,5 @@ public class ChargingStation {
 
 	public String getIcon() {
 		return icon;
-	}
-	
-	public double getDistance() {
-		return distanceToDrone;
 	}
 }

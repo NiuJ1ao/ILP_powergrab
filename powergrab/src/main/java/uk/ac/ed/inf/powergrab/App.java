@@ -73,13 +73,6 @@ public class App {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		try {
-			testDrone.move(Direction.S);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	System.out.println(testDrone.closestStation.type + ": " + testDrone.closestStation.getId());
     	
 		long endTime = System.currentTimeMillis();
 		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
