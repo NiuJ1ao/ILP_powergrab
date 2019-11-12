@@ -54,7 +54,7 @@ public class App {
 		}
     	test.parseSource();
     	
-    	// Test stateless drone;
+    	// Test drone;
     	Feature f = null;
 		try {
 			f = testDrone.strategy();
