@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeMap;
 
 import com.google.gson.JsonObject;
 import com.mapbox.geojson.Feature;
@@ -24,26 +23,22 @@ public class StatefulDrone extends Drone{
 	public Feature strategy() {
 		List<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
-		Direction[] directions = Direction.values();
 		
-		System.out.println("Stateful strategy is called");
+		//System.out.println("Stateful strategy is called");
 		
-		ChargingStation teststation = null;
-		for (ChargingStation s : App.stations) {
-			if (s.type == ChargingStation.LIGHTHOUSE) {
-				teststation = s;
-				break;
+		ArrayList<ChargingStation> route = greedyAlgorithm(position);
+		
+		route.forEach(station -> {
+			Stack<Direction> path = A_Star(position, station);
+			//System.out.println("reconstruct_path finish. Path:" + path);
+			while(!path.isEmpty()) {
+				Direction d = path.pop();
+				super.move(d);
+				points.add(positionToPoint(position));
+				//System.out.println("Current status: " + coins + ", " + power);
 			}
-		}
+		});
 		
-		Stack<Direction> path = A_Star(position, teststation);
-		System.out.println("reconstruct_path finish. Path:" + path);
-		while(!path.isEmpty()) {
-			Direction d = path.pop();
-			super.move(d);
-			points.add(positionToPoint(position));
-			System.out.println("Current status: " + coins + ", " + power);
-		}
 		
 		LineString ls = LineString.fromLngLats(points);
 		Feature f = Feature.fromGeometry(ls, new JsonObject());
@@ -60,8 +55,9 @@ public class StatefulDrone extends Drone{
 		Set<Position> visited = new HashSet<Position>();
 		Set<Position> open = new HashSet<Position>();
 		Map<Position, Position> cameFrom = new HashMap<Position, Position>();
+		int step = 0;
 		
-		System.out.println("A* search algorithm is called");
+		//System.out.println("A* search algorithm is called");
 		
 		open.add(drone);
 		gScores.put(drone, 0.);
@@ -78,8 +74,8 @@ public class StatefulDrone extends Drone{
 				}
 			}
 			
-			System.out.println("Distance to station: " + station.distanceTo(current));
-			if (station.distanceTo(current) <= Constants.ACCESS_RANGE) {
+			// System.out.println("Distance to station: " + station.distanceTo(current));
+			if (station.distanceTo(current) <= Constants.ACCESS_RANGE && step >= 1) {
 				return reconstruct_path(cameFrom, current);
 			}
 			
@@ -106,6 +102,7 @@ public class StatefulDrone extends Drone{
 			}
 			
 			visited.add(current);
+			step++;
 		}
 		
 		return null;
@@ -132,7 +129,7 @@ public class StatefulDrone extends Drone{
 	
 	private Stack<Direction> reconstruct_path(Map<Position, Position> cameFrom, Position current) {
 		Stack<Direction> path = new Stack<Direction>();
-		System.out.println("reconstruct_path is called");
+		//System.out.println("reconstruct_path is called");
 		while (cameFrom.containsKey(current)) {
 			Position prev = cameFrom.get(current);
 			for (Direction d : Direction.values()) {
@@ -149,7 +146,38 @@ public class StatefulDrone extends Drone{
 	
 	
 	/*************************
-	 **  Genetic Algorithm  **
+	 **   Greedy + 2-opt    **
 	 *************************/
+	private ArrayList<ChargingStation> greedyAlgorithm(Position start) {
+		final ArrayList<ChargingStation> lightHouses = new ArrayList<ChargingStation>();
+		App.stations.forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
+		ArrayList<ChargingStation> path = new ArrayList<ChargingStation>();
+		
+		System.out.println("Greedy is called");
+		
+		Position current = start;
+		while (!lightHouses.isEmpty()) {
+			// find the nearest lighthouse;
+			ChargingStation closestStation = lightHouses.get(0);
+			double minDist = closestStation.distanceTo(current);
+			int length = lightHouses.size();
+			for (int i=1; i<length; i++) {
+				ChargingStation station = lightHouses.get(i);
+				double distance = station.distanceTo(current);
+				if (distance < minDist) {
+					minDist = distance;
+					closestStation = station;
+				}
+			}
+			current = closestStation.position;
+			path.add(closestStation);
+			lightHouses.remove(closestStation);
+		}
+		
+		return path;
+	}
+	
+	
+	
 	
 }

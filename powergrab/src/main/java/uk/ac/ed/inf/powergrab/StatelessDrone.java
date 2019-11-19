@@ -50,11 +50,11 @@ public class StatelessDrone extends Drone{
 					if (nearestStation.distanceToDrone <= Constants.ACCESS_RANGE && nearestStation.coins != 0 
 							&& nearestStation.type == ChargingStation.LIGHTHOUSE) 
 					{
-							isMoved = move(d);
-							nearestStation.transferCoins(this);
-							nearestStation.transferPower(this);
-							points.add(positionToPoint(position));
-							break;
+						isMoved = move(d);
+						nearestStation.transferCoins(this);
+						nearestStation.transferPower(this);
+						points.add(positionToPoint(position));
+						break;
 					}
 					
 					if (nearestStation.type != ChargingStation.SKULL) {
