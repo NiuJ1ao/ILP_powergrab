@@ -36,7 +36,6 @@ public class StatelessDrone extends Drone{
 		ChargingStation nearestStation;
 		boolean isMoved = false;
 		
-		
 		while (!isGameOver()) {
 			validDirection.clear();
 			isMoved = false;
@@ -63,11 +62,19 @@ public class StatelessDrone extends Drone{
 				}
 			}
 			
-			// Random move
+			// Random move but avoid skulls
 			if (!isMoved && !validDirection.isEmpty()) {
 				int idx = rnd.nextInt(validDirection.size());
 				Direction nextd = validDirection.get(idx);
 				isMoved = super.move(nextd);
+				points.add(positionToPoint(position));
+			}
+			
+			// No valid direction, random move
+			if (!isMoved && validDirection.isEmpty()) {
+				int idx = rnd.nextInt(Direction.values().length);
+				Direction nextd = validDirection.get(idx);
+				super.move(nextd);
 				points.add(positionToPoint(position));
 			}
 			

@@ -76,11 +76,7 @@ public abstract class Drone {
 	public double transferPower(double amount) {
 		double sum = power + amount;
 		
-		if (sum >= Constants.MAXPOWER) {
-			amount = power;
-			power = Constants.MAXPOWER;
-			return Constants.MAXPOWER - amount;
-		} else if (sum < Constants.MINPAYLOAD) {
+		if (sum < Constants.MINPAYLOAD) {
 			amount = -power;
 			power = Constants.MINPAYLOAD;
 			return amount;

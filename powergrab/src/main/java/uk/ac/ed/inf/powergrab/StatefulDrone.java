@@ -15,10 +15,40 @@ import com.mapbox.geojson.Point;
 
 public class StatefulDrone extends Drone{
 
+	private Map<Double, Direction> radianToDirection = new HashMap<Double, Direction>();
+	
 	public StatefulDrone(Position p, long seed) {
 		super(p, seed);
+		
+		double radian = 0;
+		double increment = Math.PI/8;
+		Direction[] directions = Direction.values();
+		radianToDirection.put(0., Direction.E);
+		radianToDirection.put(Math.PI/8, Direction.ENE);
+		radianToDirection.put(Math.PI/4, Direction.NE);
+		radianToDirection.put(3*Math.PI/8, Direction.NNE);
+		radianToDirection.put(Math.PI/2, Direction.N);
+		radianToDirection.put(5*Math.PI/8, Direction.NNW);
+		radianToDirection.put(3*Math.PI/4, Direction.NW);
+		radianToDirection.put(7*Math.PI/8, Direction.WNW);
+		radianToDirection.put(Math.PI, Direction.W);
+		radianToDirection.put(-7*Math.PI/8, Direction.WSW);
+		radianToDirection.put(-3*Math.PI/4, Direction.SW);
+		radianToDirection.put(-5*Math.PI/8, Direction.SSW);
+		radianToDirection.put(-Math.PI/2, Direction.S);
+		radianToDirection.put(-3*Math.PI/8, Direction.SSE);
+		radianToDirection.put(-Math.PI/4, Direction.SE);
+		radianToDirection.put(-Math.PI/8, Direction.ESE);
+//		for (int i=0; i<=directions.length/2; i++) {
+//			radianToDirection.put(radian, directions[i]);
+//			radian+=increment;
+//		}
+//		for (int i=directions.length/2; i<directions.length; i++) {
+//			radianToDirection.put(radian-2*Math.PI, directions[i]);
+//			radian+=increment;
+//		}
 	}
-
+	
 	@Override
 	public Feature strategy() {
 		List<Point> points = new ArrayList<Point>();
@@ -28,17 +58,37 @@ public class StatefulDrone extends Drone{
 		
 		ArrayList<ChargingStation> route = greedyAlgorithm(position);
 		
-		route.forEach(station -> {
-			Stack<Direction> path = A_Star(position, station);
-			//System.out.println("reconstruct_path finish. Path:" + path);
-			while(!path.isEmpty()) {
+		for (ChargingStation station : route) {
+			if (isGameOver()) {
+				break;
+			}
+			
+			Stack<Direction> path = aStar(position, station);
+//			System.out.println("Path: " + path);
+			while(!isGameOver() && !path.isEmpty()) {
 				Direction d = path.pop();
 				super.move(d);
 				points.add(positionToPoint(position));
-				//System.out.println("Current status: " + coins + ", " + power);
-			}
-		});
+				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+			}		
+		}
 		
+		while (!isGameOver()) {
+			System.out.println("Random move start.");
+			Direction[] directions = Direction.values();
+			for (Direction d : directions) {
+				Position nextP = position.nextPosition(d);
+				if (nextP.inPlayArea()) {		
+					ChargingStation nearestStation = findNearestStation(nextP);					
+					if (nearestStation.type == ChargingStation.LIGHTHOUSE) {
+						super.move(d);
+						points.add(positionToPoint(position));
+						System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+						break;
+					}
+				}
+			}
+		}
 		
 		LineString ls = LineString.fromLngLats(points);
 		Feature f = Feature.fromGeometry(ls, new JsonObject());
@@ -49,7 +99,7 @@ public class StatefulDrone extends Drone{
 	/*******************************
 	 **  A Star Search Algorithm  **
 	 *******************************/
-	private Stack<Direction> A_Star(Position drone, ChargingStation station) {
+	private Stack<Direction> aStar(Position drone, ChargingStation station) {
 		Map<Position, Double> gScores = new HashMap<Position, Double>();
 		Map<Position, Double> fScores = new HashMap<Position, Double>();
 		Set<Position> visited = new HashSet<Position>();
@@ -129,20 +179,29 @@ public class StatefulDrone extends Drone{
 	
 	private Stack<Direction> reconstruct_path(Map<Position, Position> cameFrom, Position current) {
 		Stack<Direction> path = new Stack<Direction>();
-		//System.out.println("reconstruct_path is called");
+		Position prev = null;
+		System.out.println("reconstruct_path is called");
 		while (cameFrom.containsKey(current)) {
-			Position prev = cameFrom.get(current);
-			for (Direction d : Direction.values()) {
-				Position est = prev.nextPosition(d);
-				if (est.latitude == current.latitude && est.longitude == current.longitude) {
-					path.add(d);
-					current = prev;
-					break;
-				}
-			}
+			prev = cameFrom.get(current);
+//			for (Direction d : Direction.values()) {
+//				Position est = prev.nextPosition(d);
+//				if (est.latitude == current.latitude && est.longitude == current.longitude) {
+//					path.add(d);
+//					break;
+//				}
+//			}
+			double delta = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude);
+			Direction d = radianToDirection.get(delta);
+			path.add(d);
+			System.out.println("Path: " + path);
+			current = prev;
 		}
 		return path;
 	}
+	
+//	public static void main(String[] args) {
+//		System.out.println("atan2 pi = " + Math.atan2(-1, -1));
+//	}
 	
 	
 	/*************************
@@ -153,7 +212,7 @@ public class StatefulDrone extends Drone{
 		App.stations.forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
 		ArrayList<ChargingStation> path = new ArrayList<ChargingStation>();
 		
-		System.out.println("Greedy is called");
+		// System.out.println("Greedy is called");
 		
 		Position current = start;
 		while (!lightHouses.isEmpty()) {
