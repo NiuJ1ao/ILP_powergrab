@@ -14,21 +14,16 @@ public class StatelessDrone extends Drone{
 	}
 	
 	@Override
-	public boolean move(Direction d) {
-		Position p = position.nextPosition(d);
-			
-		if (p.inPlayArea()) {			
-			position = p;
-			power = power - POWER_CONSUMPTION;
-			steps++;
-			
-			return true;
-		}
-		return false;
+	public boolean move(Direction d) {		
+		position = position.nextPosition(d);;
+		power = power - POWER_CONSUMPTION;
+		steps++;
+		
+		return true;
 	}
 	
 	@Override
-	public Feature strategy() throws Exception {
+	public Feature strategy() {
 		List<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
 		List<Direction> validDirection = new ArrayList<Direction>();
@@ -50,7 +45,7 @@ public class StatelessDrone extends Drone{
 					if (nearestStation.distanceToDrone <= Constants.ACCESS_RANGE && nearestStation.coins != 0 
 							&& nearestStation.type == ChargingStation.LIGHTHOUSE) 
 					{
-						isMoved = super.move(d);
+						isMoved = move(d);
 						nearestStation.transferCoins(this);
 						nearestStation.transferPower(this);
 						points.add(positionToPoint(position));

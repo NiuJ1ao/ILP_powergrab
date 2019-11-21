@@ -15,7 +15,7 @@ public abstract class Drone {
 	protected Random rnd;
 	protected final double POWER_CONSUMPTION = 1.25;
 	protected int steps;
-	protected PrintWriter writer;
+	private PrintWriter writer;
 	
 	public Drone(Position p, long seed, PrintWriter writer) {
 		this.position = p;
@@ -102,5 +102,5 @@ public abstract class Drone {
 	public void writeTextFile() {
 		
 	}
-	public abstract Feature strategy() throws Exception;
+	public abstract Feature strategy();
 }

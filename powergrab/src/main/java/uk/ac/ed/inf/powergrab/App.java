@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -18,67 +17,119 @@ import com.mapbox.geojson.*;
  *
  */
 public class App {
-	
-	private String mapSource = new String();
+	//private String mapSource;
 	protected static List<ChargingStation> stations = new ArrayList<ChargingStation>();
-	protected static Drone testDrone;
+	private static Drone drone;
 	List<Feature> featuresList = null;
 	
-    public static void main( String[] args ) throws Exception {
+    public static void main(String[] args) throws Exception {
     	long startTime = System.currentTimeMillis();
-    	
     	// Parse arguments.
-    	String day = args[0];
-    	String month = args[1];
-    	String year = args[2];
-    	Position initDronePos = new Position(Double.parseDouble(args[3]), Double.parseDouble(args[4]));
-    	long seed = Long.parseLong(args[5]);
-    	String droneType = args[6].toLowerCase();
+//    	String day = args[0];
+//    	String month = args[1];
+//    	String year = args[2];
+//    	Position initDronePos = new Position(Double.parseDouble(args[3]), Double.parseDouble(args[4]));
+//    	long seed = Long.parseLong(args[5]);
+//    	String droneType = args[6].toLowerCase();
+//    	
+//    	new App(day, month, year, initDronePos, seed, droneType);
     	
-    	// Initialize drone and APP.
-    	App test = new App();
+//    	/**
+//    	 * This is for evaluating performance
+//    	 */
+    	String year;
+    	String month;
+    	String day;
+    	Position init = new Position(55.944425, -3.188396);
+    	int maxDay = 31;
+    	int[] m30 = {4,6,9,11};
+    	for (int y=2019; y<=2020; y++) {
+    		year = "" + y;
+    		for (int m=1; m<=12; m++) {
+    			if (m < 10) {
+    				month = "0" + m;
+    			} else {
+    				month = "" + m;
+    			}
+    			if (y == 2019 && m == 2) {
+    				maxDay = 28;
+    			} else if (y == 2020 && m == 2) {
+    				maxDay = 29;
+    			} else {
+    				for (int i=0; i<4; i++) {
+    					if (m == m30[i]) {
+    						maxDay = 30;
+    						break;
+    					}
+    				}
+    			}
+    			
+    			for (int d=1; d<=maxDay; d++) {
+    				if (d < 10) {
+        				day = "0" + d;
+        			} else {
+        				day = "" + d;
+        			}
+    				
+    				new App(day, month, year, init, 5678, "stateful");
+    			}
+    		}
+    	}
+    	
+		long endTime = System.currentTimeMillis();
+		System.out.println("Total Elapsed time in milliseconds: " + (endTime - startTime));
+    }
+    
+    public App(String day, String month, String year, Position initDronePos, long seed, String droneType) throws Exception {
+    	System.out.println(droneType+" drone is running in "+day+" "+month+" "+year);
+    	long startTime = System.currentTimeMillis();
+    	// Initiate stations
+		downloadMap(year, month, day);
+		
+		// Totoal coins
+		double totalCoins = getTotalCoins();
+    	
+    	// Initiate drone
     	String txtFileName = String.format("%s-%s-%s-%s.txt", droneType, day, month, year); 
     	PrintWriter txtWriter = new PrintWriter(txtFileName, "UTF-8");
     	if (droneType.equals("stateless")) {
-    		testDrone = new StatelessDrone(initDronePos, seed, txtWriter);
+    		drone = new StatelessDrone(initDronePos, seed, txtWriter);
     	} else if (droneType.equals("stateful")) {
-    		testDrone = new StatefulDrone(initDronePos, seed, txtWriter);
+    		drone = new StatefulDrone(initDronePos, seed, txtWriter);
     	} else {
     		System.out.println("Type not found");
     		txtWriter.close();
     		throw new ClassNotFoundException("Drone type is not found.");
     	}
     	
-    	// Download Map and parse it.
-    	try {
-			test.downloadMap(year, month , day);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    	test.parseSource();
+    	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year);
+    	PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
     	
-    	// Run drone;
-    	Feature f = null;
-		try {
-			f = testDrone.strategy();
-			txtWriter.close();
-		} catch (Exception e1) {
-			e1.printStackTrace();
-		}
-    	test.featuresList.add(f);
-    	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
-    
-    	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
-		try {
-			PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
-			jsonWriter.println(fc.toJson());
-			jsonWriter.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	
-		long endTime = System.currentTimeMillis();
+    	run(txtWriter, jsonWriter);
+    	long endTime = System.currentTimeMillis();
+    	System.out.println("Coins ratio: " + drone.coins/totalCoins);
 		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
+    }
+    
+    private double getTotalCoins() {
+    	double result = 0;
+    	for (ChargingStation s : stations) {
+    		if (s.type == ChargingStation.LIGHTHOUSE) {
+    			result += s.coins;
+    		}
+    	}
+    	return result;
+    }
+    
+    private void run(PrintWriter txtWriter, PrintWriter jsonWriter) {
+    	Feature f = null;
+		f = drone.strategy();
+		txtWriter.close();
+    	featuresList.add(f);
+    	FeatureCollection fc = FeatureCollection.fromFeatures(featuresList);
+ 
+		jsonWriter.println(fc.toJson());
+		jsonWriter.close();
     }
     
     private void downloadMap(String year, String month, String day) throws Exception {
@@ -101,10 +152,12 @@ public class App {
     			mapBuilder.append((char) c);
     		}
     	}
-    	mapSource = mapBuilder.toString();
+    	
+    	String mapSource = mapBuilder.toString();
+    	parseSource(mapSource);
     }
     
-    private void parseSource() {
+    private void parseSource(String mapSource) {
 	    FeatureCollection fc = FeatureCollection.fromJson(mapSource);
     	featuresList  = fc.features();
     	for (final Feature f : featuresList) {
