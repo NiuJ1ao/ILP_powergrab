@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.powergrab;
 
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Random;
 import com.mapbox.geojson.Feature;
@@ -14,18 +15,20 @@ public abstract class Drone {
 	protected Random rnd;
 	protected final double POWER_CONSUMPTION = 1.25;
 	protected int steps;
+	protected PrintWriter writer;
 	
-	public Drone(Position p, long seed) {
+	public Drone(Position p, long seed, PrintWriter writer) {
 		this.position = p;
 		this.coins = 0;
 		this.power = 250;
 		this.rnd = new Random(seed);
 		this.steps = 0;
+		this.writer = writer;
 	}
 	
 	public boolean move(Direction d) {
 		Position p = position.nextPosition(d);
-			
+		Position prev = position;
 		if (p.inPlayArea()) {			
 			position = p;
 			power = power - POWER_CONSUMPTION;
@@ -38,6 +41,7 @@ public abstract class Drone {
 			}
 			return true;
 		}
+		writer.println("");
 		return false;
 	}
 	
@@ -94,5 +98,8 @@ public abstract class Drone {
 		return Point.fromLngLat(position.longitude, position.latitude);
 	}
 	
+	public void writeTextFile() {
+		
+	}
 	public abstract Feature strategy() throws Exception;
 }

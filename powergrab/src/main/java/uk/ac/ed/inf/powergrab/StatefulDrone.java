@@ -1,5 +1,6 @@
 package uk.ac.ed.inf.powergrab;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,27 +18,10 @@ public class StatefulDrone extends Drone{
 
 	private Map<Integer, Direction> radianToDirection = new HashMap<Integer, Direction>();
 	
-	public StatefulDrone(Position p, long seed) {
-		super(p, seed);
+	public StatefulDrone(Position p, long seed, PrintWriter writer) {
+		super(p, seed, writer);
 		
 		Direction[] directions = Direction.values();
-//		radianToDirection.put(0, Direction.E);
-//		radianToDirection.put(1, Direction.ENE);
-//		radianToDirection.put(2, Direction.NE);
-//		radianToDirection.put(3, Direction.NNE);
-//		radianToDirection.put(4, Direction.N);
-//		radianToDirection.put(5, Direction.NNW);
-//		radianToDirection.put(6, Direction.NW);
-//		radianToDirection.put(7, Direction.WNW);
-//		radianToDirection.put(8, Direction.W);
-//		radianToDirection.put(-8, Direction.W);
-//		radianToDirection.put(-7, Direction.WSW);
-//		radianToDirection.put(-6, Direction.SW);
-//		radianToDirection.put(-5, Direction.SSW);
-//		radianToDirection.put(-4, Direction.S);
-//		radianToDirection.put(-3, Direction.SSE);
-//		radianToDirection.put(-2, Direction.SE);
-//		radianToDirection.put(-1, Direction.ESE);
 		for (int i=0; i<=directions.length/2; i++) {
 			radianToDirection.put(i, directions[i]);
 		}

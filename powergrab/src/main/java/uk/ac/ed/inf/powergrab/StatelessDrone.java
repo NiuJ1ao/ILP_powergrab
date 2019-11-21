@@ -1,6 +1,7 @@
 package uk.ac.ed.inf.powergrab;
 
 import java.util.List;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import com.google.gson.JsonObject;
@@ -8,8 +9,8 @@ import com.mapbox.geojson.*;
 
 public class StatelessDrone extends Drone{
 
-	public StatelessDrone(Position p, long seed) {
-		super(p, seed);
+	public StatelessDrone(Position p, long seed, PrintWriter writer) {
+		super(p, seed, writer);
 	}
 	
 	@Override
@@ -49,7 +50,7 @@ public class StatelessDrone extends Drone{
 					if (nearestStation.distanceToDrone <= Constants.ACCESS_RANGE && nearestStation.coins != 0 
 							&& nearestStation.type == ChargingStation.LIGHTHOUSE) 
 					{
-						isMoved = move(d);
+						isMoved = super.move(d);
 						nearestStation.transferCoins(this);
 						nearestStation.transferPower(this);
 						points.add(positionToPoint(position));

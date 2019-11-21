@@ -24,7 +24,7 @@ public class App {
 	protected static Drone testDrone;
 	List<Feature> featuresList = null;
 	
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws Exception {
     	long startTime = System.currentTimeMillis();
     	
     	// Parse arguments.
@@ -37,13 +37,16 @@ public class App {
     	
     	// Initialize drone and APP.
     	App test = new App();
+    	String txtFileName = String.format("%s-%s-%s-%s.txt", droneType, day, month, year); 
+    	PrintWriter txtWriter = new PrintWriter(txtFileName, "UTF-8");
     	if (droneType.equals("stateless")) {
-    		testDrone = new StatelessDrone(initDronePos, seed);
+    		testDrone = new StatelessDrone(initDronePos, seed, txtWriter);
     	} else if (droneType.equals("stateful")) {
-    		testDrone = new StatefulDrone(initDronePos, seed);
+    		testDrone = new StatefulDrone(initDronePos, seed, txtWriter);
     	} else {
     		System.out.println("Type not found");
-    		return;
+    		txtWriter.close();
+    		throw new ClassNotFoundException("Drone type is not found.");
     	}
     	
     	// Download Map and parse it.
@@ -54,22 +57,22 @@ public class App {
 		}
     	test.parseSource();
     	
-    	// Test drone;
+    	// Run drone;
     	Feature f = null;
 		try {
 			f = testDrone.strategy();
+			txtWriter.close();
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
     	test.featuresList.add(f);
     	FeatureCollection fc = FeatureCollection.fromFeatures(test.featuresList);
     
-    	String fileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
+    	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year); 	
 		try {
-			PrintWriter writer = new PrintWriter(fileName, "UTF-8");
-			writer.println(fc.toJson());
-			writer.close();
+			PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
+			jsonWriter.println(fc.toJson());
+			jsonWriter.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
