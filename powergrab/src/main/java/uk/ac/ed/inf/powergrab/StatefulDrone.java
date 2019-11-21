@@ -15,38 +15,35 @@ import com.mapbox.geojson.Point;
 
 public class StatefulDrone extends Drone{
 
-	private Map<Double, Direction> radianToDirection = new HashMap<Double, Direction>();
+	private Map<Integer, Direction> radianToDirection = new HashMap<Integer, Direction>();
 	
 	public StatefulDrone(Position p, long seed) {
 		super(p, seed);
 		
-		double radian = 0;
-		double increment = Math.PI/8;
 		Direction[] directions = Direction.values();
-		radianToDirection.put(0., Direction.E);
-		radianToDirection.put(Math.PI/8, Direction.ENE);
-		radianToDirection.put(Math.PI/4, Direction.NE);
-		radianToDirection.put(3*Math.PI/8, Direction.NNE);
-		radianToDirection.put(Math.PI/2, Direction.N);
-		radianToDirection.put(5*Math.PI/8, Direction.NNW);
-		radianToDirection.put(3*Math.PI/4, Direction.NW);
-		radianToDirection.put(7*Math.PI/8, Direction.WNW);
-		radianToDirection.put(Math.PI, Direction.W);
-		radianToDirection.put(-7*Math.PI/8, Direction.WSW);
-		radianToDirection.put(-3*Math.PI/4, Direction.SW);
-		radianToDirection.put(-5*Math.PI/8, Direction.SSW);
-		radianToDirection.put(-Math.PI/2, Direction.S);
-		radianToDirection.put(-3*Math.PI/8, Direction.SSE);
-		radianToDirection.put(-Math.PI/4, Direction.SE);
-		radianToDirection.put(-Math.PI/8, Direction.ESE);
-//		for (int i=0; i<=directions.length/2; i++) {
-//			radianToDirection.put(radian, directions[i]);
-//			radian+=increment;
-//		}
-//		for (int i=directions.length/2; i<directions.length; i++) {
-//			radianToDirection.put(radian-2*Math.PI, directions[i]);
-//			radian+=increment;
-//		}
+//		radianToDirection.put(0, Direction.E);
+//		radianToDirection.put(1, Direction.ENE);
+//		radianToDirection.put(2, Direction.NE);
+//		radianToDirection.put(3, Direction.NNE);
+//		radianToDirection.put(4, Direction.N);
+//		radianToDirection.put(5, Direction.NNW);
+//		radianToDirection.put(6, Direction.NW);
+//		radianToDirection.put(7, Direction.WNW);
+//		radianToDirection.put(8, Direction.W);
+//		radianToDirection.put(-8, Direction.W);
+//		radianToDirection.put(-7, Direction.WSW);
+//		radianToDirection.put(-6, Direction.SW);
+//		radianToDirection.put(-5, Direction.SSW);
+//		radianToDirection.put(-4, Direction.S);
+//		radianToDirection.put(-3, Direction.SSE);
+//		radianToDirection.put(-2, Direction.SE);
+//		radianToDirection.put(-1, Direction.ESE);
+		for (int i=0; i<=directions.length/2; i++) {
+			radianToDirection.put(i, directions[i]);
+		}
+		for (int i=directions.length/2; i<directions.length; i++) {
+			radianToDirection.put(i-16, directions[i]);
+		}
 	}
 	
 	@Override
@@ -74,7 +71,7 @@ public class StatefulDrone extends Drone{
 		}
 		
 		while (!isGameOver()) {
-			System.out.println("Random move start.");
+//			System.out.println("Random move start.");
 			Direction[] directions = Direction.values();
 			for (Direction d : directions) {
 				Position nextP = position.nextPosition(d);
@@ -180,7 +177,10 @@ public class StatefulDrone extends Drone{
 	private Stack<Direction> reconstruct_path(Map<Position, Position> cameFrom, Position current) {
 		Stack<Direction> path = new Stack<Direction>();
 		Position prev = null;
-		System.out.println("reconstruct_path is called");
+		Direction d;
+		double radian;
+		double dividor = Math.PI/8;
+//		System.out.println("reconstruct_path is called");
 		while (cameFrom.containsKey(current)) {
 			prev = cameFrom.get(current);
 //			for (Direction d : Direction.values()) {
@@ -190,17 +190,16 @@ public class StatefulDrone extends Drone{
 //					break;
 //				}
 //			}
-			double delta = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude);
-			Direction d = radianToDirection.get(delta);
+			radian = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude);
+			d = radianToDirection.get((int) Math.round(radian/dividor));
 			path.add(d);
-			System.out.println("Path: " + path);
 			current = prev;
 		}
 		return path;
 	}
 	
 //	public static void main(String[] args) {
-//		System.out.println("atan2 pi = " + Math.atan2(-1, -1));
+//		System.out.println("atan2 pi: " + (Math.atan2(0, -1.0) == Math.PI));
 //	}
 	
 	
