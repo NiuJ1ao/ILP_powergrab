@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
@@ -39,20 +40,16 @@ public class StatefulDrone extends Drone{
 //		System.out.println("Stateful strategy is called");
 		
 		List<ChargingStation> route = greedyAlgorithm(position);
+		points.addAll(followRoute(route));
 		
-		for (ChargingStation station : route) {
-			if (isGameOver()) {
-				break;
+		// check any station left
+		List<ChargingStation> lefts = new ArrayList<ChargingStation>();
+		for (ChargingStation station : App.stations) {
+			if (station.coins > 0) {
+				lefts.add(station);
 			}
-			
-			Stack<Direction> path = aStar(position, station);
-			while(!isGameOver() && !path.isEmpty()) {
-				Direction d = path.pop();
-				move(d);
-				points.add(positionToPoint(position));
-				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
-			}		
 		}
+		points.addAll(followRoute(lefts));
 		
 		while (!isGameOver()) {
 			int idx = rnd.nextInt(directions.length);
@@ -69,6 +66,25 @@ public class StatefulDrone extends Drone{
 		LineString ls = LineString.fromLngLats(points);
 		Feature f = Feature.fromGeometry(ls, new JsonObject());
 		return f;
+	}
+	
+	private List<Point> followRoute(List<ChargingStation> route) {
+		List<Point> points = new ArrayList<Point>();
+		for (ChargingStation station : route) {
+			if (isGameOver()) {
+				break;
+			}
+			
+			Stack<Direction> path = aStar(position, station);
+//			System.out.println(path);
+			while(!isGameOver() && !path.isEmpty()) {
+				Direction d = path.pop();
+				move(d);
+				points.add(positionToPoint(position));
+				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+			}		
+		}
+		return points;
 	}
 	
 	
@@ -90,47 +106,77 @@ public class StatefulDrone extends Drone{
 		fScores.put(drone, station.distanceTo(drone));
 		Position current = drone;
 
-		while (!open.isEmpty()) {
-			// find minimum f
-			double minFScore = Double.MAX_VALUE;
-			for (Position p : open) {
-				if (fScores.get(p) < minFScore) {
-					current = p;
-					minFScore = fScores.get(p);
+//		while (!open.isEmpty()) {
+//			// find minimum f
+//			double minFScore = Double.MAX_VALUE;
+//			for (Position p : open) {
+//				if (fScores.get(p) < minFScore) {
+//					current = p;
+//					minFScore = fScores.get(p);
+//				}
+//			}
+//			System.out.println("F-score: " + minFScore);
+//			if (station.distanceTo(current) <= Constants.ACCESS_RANGE && step >= 1) {
+//				return reconstruct_path(cameFrom, current);
+//			}
+//			
+//			open.remove(current);
+//			List<Position> neighbors = nextPositions(current);
+//			for (Position neighbor : neighbors) {
+//				System.out.println("current gscore: " + gScores.get(current));
+//				double gScore = gScores.get(current) + Constants.r;
+//				double fScore = gScore + station.distanceTo(neighbor);
+//				if (visited.contains(neighbor)) {
+//					// update value if g is smaller;
+//					if (gScore < gScores.get(neighbor)) {
+//						gScores.replace(neighbor, gScore);
+//						fScores.replace(neighbor, fScore);
+//						cameFrom.replace(neighbor, current);
+//						open.add(neighbor);
+//					}
+//				} else {
+//					// add new point to list
+//					gScores.put(neighbor, gScore);
+//					fScores.put(neighbor, fScore);
+//					cameFrom.put(neighbor, current);
+//					open.add(neighbor);
+//				}
+//			}
+//			visited.add(current);
+//			step++;
+//		}
+		
+//		return null;
+		
+		double minFScore = Double.MAX_VALUE;
+		while (true) {
+			minFScore = Double.MAX_VALUE;
+			for (Entry<Position, Double> pair : fScores.entrySet()) {
+				if (pair.getValue() < minFScore) {
+					minFScore = pair.getValue();
+					current = pair.getKey();
 				}
 			}
-//			System.out.println(station.distanceTo(current));
-			if (station.distanceTo(current) <= Constants.ACCESS_RANGE && step >= 1) {
+//			System.out.println(minFScore);
+			if (station.distanceTo(current) <= Constants.ACCESS_RANGE && step>0) {
 				return reconstruct_path(cameFrom, current);
 			}
 			
-			open.remove(current);
-			List<Position> neighbors = nextPositions(current);
-			for (Position neighbor : neighbors) {
-				double gScore = gScores.get(current) + Constants.r;
-				double fScore = gScore + station.distanceTo(neighbor);
-				if (visited.contains(neighbor)) {
-					// update value if g is smaller;
-					if (gScore < gScores.get(neighbor)) {
-						gScores.replace(neighbor, gScore);
-						fScores.replace(neighbor, fScore);
-						cameFrom.replace(neighbor, current);
-						open.add(neighbor);
-					}
-				} else {
-					// add new point to list
-					gScores.put(neighbor, gScore);
-					fScores.put(neighbor, fScore);
-					cameFrom.put(neighbor, current);
-					open.add(neighbor);
-				}
+			if (step>1000) {
+				System.out.println("GIVE UP!!!!");
+				return reconstruct_path(cameFrom, current);
 			}
 			
-			visited.add(current);
+			fScores.remove(current);
+			List<Position> neighbors = nextPositions(current);
+			for (Position neighbor : neighbors) {
+				gScores.put(neighbor, gScores.get(current) + Constants.r);
+				fScores.put(neighbor, gScores.get(neighbor) + station.distanceTo(neighbor));
+				cameFrom.put(neighbor, current);
+			}
 			step++;
 		}
 		
-		return null;
 	}
 	
 	private List<Position> nextPositions(Position p) {
@@ -202,32 +248,32 @@ public class StatefulDrone extends Drone{
 		}
 		
 		// run 2-opt algorithm;
-//		double currentPerformance;
-//		int numOfLightHouses = lightHouses.size();
-//		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
-//		double newLength = 0;
-//		boolean isImproved;
-//		do {
-//			currentPerformance = routeLength;
-//			isImproved = false;
-//			for (int i=0; i<numOfLightHouses-1; i++) {
-//				for (int j=i+1; j<numOfLightHouses; j++) {
-//					newRoute = twoOptSwap(path, i, j);
-//					newLength = evaluateRoute(newRoute);
-//					if (newLength < routeLength) {
-//						path = newRoute;
-//						routeLength = newLength;
-//						isImproved = true;
-//						System.out.println("2-opt is implemented.");
-//						break;
-//					}
-//				}
-//				
-//				if (isImproved) {
-//					break;
-//				}
-//			}
-//		} while (currentPerformance != routeLength);
+		double currentPerformance;
+		int numOfLightHouses = lightHouses.size();
+		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
+		double newLength = 0;
+		boolean isImproved;
+		do {
+			currentPerformance = routeLength;
+			isImproved = false;
+			for (int i=0; i<numOfLightHouses-1; i++) {
+				for (int j=i+1; j<numOfLightHouses; j++) {
+					newRoute = twoOptSwap(path, i, j);
+					newLength = evaluateRoute(newRoute);
+					if (newLength < routeLength) {
+						path = newRoute;
+						routeLength = newLength;
+						isImproved = true;
+						System.out.println("2-opt is implemented.");
+						break;
+					}
+				}
+				
+				if (isImproved) {
+					break;
+				}
+			}
+		} while (currentPerformance != routeLength);
 		return path;
 	}
 	
@@ -254,5 +300,8 @@ public class StatefulDrone extends Drone{
 		}
 		return distance;
 	}
-
+	
+	private void primsAlgorithm() {
+		
+	}
 }

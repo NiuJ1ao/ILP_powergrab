@@ -1,7 +1,9 @@
 package uk.ac.ed.inf.powergrab;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -25,56 +27,63 @@ public class App {
     public static void main(String[] args) throws Exception {
     	long startTime = System.currentTimeMillis();
     	// Parse arguments.
-//    	String day = args[0];
-//    	String month = args[1];
-//    	String year = args[2];
-//    	Position initDronePos = new Position(Double.parseDouble(args[3]), Double.parseDouble(args[4]));
-//    	long seed = Long.parseLong(args[5]);
-//    	String droneType = args[6].toLowerCase();
+    	String day = args[0];
+    	String month = args[1];
+    	String year = args[2];
+    	Position initDronePos = new Position(Double.parseDouble(args[3]), Double.parseDouble(args[4]));
+    	long seed = Long.parseLong(args[5]);
+    	String droneType = args[6].toLowerCase();
+    	
+    	new App(day, month, year, initDronePos, seed, droneType);
+    	
+//    	Map<Position, Integer> a = new HashMap<Position, Integer>();
+//    	for (int i=0; i<10; i++) {
+//    		a.put(new Position(i,i), i);
+//    	}
 //    	
-//    	new App(day, month, year, initDronePos, seed, droneType);
+//    	System.out.println(a.get(new Position(1,1)));
     	
 //    	/**
 //    	 * This is for evaluating performance
 //    	 */
-    	String year;
-    	String month;
-    	String day;
-    	Position init = new Position(55.944425, -3.188396);
-    	int maxDay = 31;
-    	int[] m30 = {4,6,9,11};
-    	for (int y=2019; y<=2020; y++) {
-    		year = "" + y;
-    		for (int m=1; m<=12; m++) {
-    			if (m < 10) {
-    				month = "0" + m;
-    			} else {
-    				month = "" + m;
-    			}
-    			if (y == 2019 && m == 2) {
-    				maxDay = 28;
-    			} else if (y == 2020 && m == 2) {
-    				maxDay = 29;
-    			} else {
-    				for (int i=0; i<4; i++) {
-    					if (m == m30[i]) {
-    						maxDay = 30;
-    						break;
-    					}
-    				}
-    			}
-    			
-    			for (int d=1; d<=maxDay; d++) {
-    				if (d < 10) {
-        				day = "0" + d;
-        			} else {
-        				day = "" + d;
-        			}
-    				
-    				new App(day, month, year, init, 5678, "stateful");
-    			}
-    		}
-    	}
+//    	String year;
+//    	String month;
+//    	String day;
+//    	Position init = new Position(55.944425, -3.188396);
+//    	int maxDay = 31;
+//    	int[] m30 = {4,6,9,11};
+//    	for (int y=2019; y<=2020; y++) {
+//    		year = "" + y;
+//    		for (int m=1; m<=12; m++) {
+//    			if (m < 10) {
+//    				month = "0" + m;
+//    			} else {
+//    				month = "" + m;
+//    			}
+//    			if (y == 2019 && m == 2) {
+//    				maxDay = 28;
+//    			} else if (y == 2020 && m == 2) {
+//    				maxDay = 29;
+//    			} else {
+//    				for (int i=0; i<4; i++) {
+//    					if (m == m30[i]) {
+//    						maxDay = 30;
+//    						break;
+//    					}
+//    				}
+//    			}
+//    			
+//    			for (int d=1; d<=maxDay; d++) {
+//    				if (d < 10) {
+//        				day = "0" + d;
+//        			} else {
+//        				day = "" + d;
+//        			}
+//    				
+//    				new App(day, month, year, init, 5678, "stateful");
+//    			}
+//    		}
+//    	}
     	
 		long endTime = System.currentTimeMillis();
 		System.out.println("Total Elapsed time in milliseconds: " + (endTime - startTime));
