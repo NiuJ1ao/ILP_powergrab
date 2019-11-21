@@ -39,9 +39,10 @@ public abstract class Drone {
 				s.transferCoins(this);
 				s.transferPower(this);
 			}
+			
+			writer.println(prev.latitude +" "+ prev.longitude +" "+ d +" "+ position.latitude +" "+ position.longitude +" "+ coins +" "+ power);
 			return true;
 		}
-		writer.println("");
 		return false;
 	}
 	

@@ -34,6 +34,7 @@ public class StatefulDrone extends Drone{
 	public Feature strategy() {
 		List<Point> points = new ArrayList<Point>();
 		points.add(positionToPoint(position));
+		Direction[] directions = Direction.values();
 		
 		//System.out.println("Stateful strategy is called");
 		
@@ -48,7 +49,7 @@ public class StatefulDrone extends Drone{
 //			System.out.println("Path: " + path);
 			while(!isGameOver() && !path.isEmpty()) {
 				Direction d = path.pop();
-				super.move(d);
+				move(d);
 				points.add(positionToPoint(position));
 				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 			}		
@@ -56,19 +57,15 @@ public class StatefulDrone extends Drone{
 		
 		while (!isGameOver()) {
 //			System.out.println("Random move start.");
-			Direction[] directions = Direction.values();
-			for (Direction d : directions) {
-				Position nextP = position.nextPosition(d);
-				if (nextP.inPlayArea()) {		
-					ChargingStation nearestStation = findNearestStation(nextP);					
-					if (nearestStation.type == ChargingStation.LIGHTHOUSE) {
-						super.move(d);
-						points.add(positionToPoint(position));
-						System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
-						break;
-					}
-				}
+			int idx = rnd.nextInt(directions.length);
+			Direction direction = directions[idx];
+			Position nextP = position.nextPosition(direction);
+			if (nextP.inPlayArea() && findNearestStation(nextP).type == ChargingStation.LIGHTHOUSE) {					
+				move(direction);
+				points.add(positionToPoint(position));
+				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 			}
+			
 		}
 		
 		LineString ls = LineString.fromLngLats(points);
@@ -182,10 +179,6 @@ public class StatefulDrone extends Drone{
 		return path;
 	}
 	
-//	public static void main(String[] args) {
-//		System.out.println("atan2 pi: " + (Math.atan2(0, -1.0) == Math.PI));
-//	}
-	
 	
 	/*************************
 	 **   Greedy + 2-opt    **
@@ -194,7 +187,7 @@ public class StatefulDrone extends Drone{
 		final ArrayList<ChargingStation> lightHouses = new ArrayList<ChargingStation>();
 		App.stations.forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
 		ArrayList<ChargingStation> path = new ArrayList<ChargingStation>();
-		
+		double routeLength = 0;
 		// System.out.println("Greedy is called");
 		
 		Position current = start;
@@ -213,13 +206,32 @@ public class StatefulDrone extends Drone{
 			}
 			current = closestStation.position;
 			path.add(closestStation);
+			routeLength += minDist;
 			lightHouses.remove(closestStation);
 		}
+		
+		// run 2-opt algorithm;
+		double currentPerformance = routeLength;
+		int numOfLightHouses = lightHouses.size();
+		do {
+			for (int i=0; i<numOfLightHouses-1; i++) {
+				for (int j=i+1; j<numOfLightHouses; j++) {
+					
+				}
+			}
+		} while (currentPerformance == routeLength);
 		
 		return path;
 	}
 	
-	
-	
-	
+	private ArrayList<ChargingStation> twoOptSwap(ArrayList<ChargingStation> current, int a, int b) {
+		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
+		
+		for (int i=0; i<a; i++) {
+			newRoute
+		}
+		
+		return null;
+	}
+
 }

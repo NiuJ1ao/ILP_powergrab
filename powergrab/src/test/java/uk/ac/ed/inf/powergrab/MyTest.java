@@ -15,22 +15,22 @@ public class MyTest {
 		return approxEq(p0.latitude, p1.latitude) && approxEq(p0.longitude, p1.longitude); 
 	}
     
-	Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
+	//Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
 	ChargingStation station = new ChargingStation("1", 0, 0, "1", "1", new Position(1,1));
 
-	@Test
-	public void testTransfer() {
-		station.power = 200;
-		station.transferPower(testDrone);
-		System.out.println(station.power);
-		station.power = -260;
-		station.transferPower(testDrone);
-		System.out.println(station.power);
-		station.power = 300;
-		station.transferPower(testDrone);
-		System.out.println(station.power);
-		assertTrue(approxEq(testDrone.power, 250));
-	}
+//	@Test
+//	public void testTransfer() {
+//		station.power = 200;
+//		station.transferPower(testDrone);
+//		System.out.println(station.power);
+//		station.power = -260;
+//		station.transferPower(testDrone);
+//		System.out.println(station.power);
+//		station.power = 300;
+//		station.transferPower(testDrone);
+//		System.out.println(station.power);
+//		assertTrue(approxEq(testDrone.power, 250));
+//	}
 	
 //	@Test
 //	public void testNegCoins() {
