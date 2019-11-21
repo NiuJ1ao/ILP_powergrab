@@ -41,11 +41,6 @@ public class ChargingStation {
 	public double distanceTo(Position p) {
 		return Util.pythagoreanDistance(p, position);
 	}
-//	
-//	public double distanceToDrone() {
-//		distanceToDrone = Util.pythagoreanDistance(App.testDrone.position, this.position);
-//		return distanceToDrone;
-//	}
 	
 	/***
 	 * Getters for private variables.
