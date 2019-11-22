@@ -1,23 +1,23 @@
 package uk.ac.ed.inf.powergrab;
-
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-
+//
+////import org.junit.Test;
+//import static org.junit.Assert.assertTrue;
+//import static org.junit.Assert.assertFalse;
+//
 public class MyTest {
-	
-	boolean approxEq(double d0, double d1) {
-		final double epsilon = 1.0E-12d;
-		return Math.abs(d0 - d1) < epsilon;
-	}
-
-	boolean approxEq(Position p0, Position p1) {
-		return approxEq(p0.latitude, p1.latitude) && approxEq(p0.longitude, p1.longitude); 
-	}
-    
-	//Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
-	ChargingStation station = new ChargingStation("1", 0, 0, "1", "1", new Position(1,1));
-
+//	
+//	boolean approxEq(double d0, double d1) {
+//		final double epsilon = 1.0E-12d;
+//		return Math.abs(d0 - d1) < epsilon;
+//	}
+//
+//	boolean approxEq(Position p0, Position p1) {
+//		return approxEq(p0.latitude, p1.latitude) && approxEq(p0.longitude, p1.longitude); 
+//	}
+//    
+//	//Drone testDrone = new StatelessDrone(new Position(55.944425, -3.188396), 1);
+//	ChargingStation station = new ChargingStation("1", 0, 0, "1", "1", new Position(1,1));
+//
 //	@Test
 //	public void testTransfer() {
 //		station.power = 200;
@@ -90,4 +90,4 @@ public class MyTest {
 //		assertTrue(approxEq(station.power, -20));
 //	}
 }
-
+//

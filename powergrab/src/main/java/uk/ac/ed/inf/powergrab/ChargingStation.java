@@ -33,15 +33,20 @@ public class ChargingStation {
 		power -= amount;
 	}
 	
-	public double distanceToDrone(Position drone) {
-		distanceToDrone = Util.pythagoreanDistance(drone, position);
-		return distanceToDrone;
-	}
-	
+//	public double distanceToDrone(Position drone) {
+//		distanceToDrone = pythagoreanDistance(drone, position);
+//		return distanceToDrone;
+//	}
+//	
 	public double distanceTo(Position p) {
-		return Util.pythagoreanDistance(p, position);
+		return pythagoreanDistance(p, position);
 	}
 	
+	private double pythagoreanDistance(Position position, Position station) {
+		double distance = Math.sqrt(Math.pow(station.latitude - position.latitude, 2) 
+				+ Math.pow(station.longitude - position.longitude, 2));
+		return distance;
+	}
 	/***
 	 * Getters for private variables.
 	 */

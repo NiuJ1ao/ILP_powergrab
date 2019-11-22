@@ -1,9 +1,7 @@
 package uk.ac.ed.inf.powergrab;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -25,7 +23,6 @@ public class App {
 	List<Feature> featuresList = null;
 	
     public static void main(String[] args) throws Exception {
-    	long startTime = System.currentTimeMillis();
     	// Parse arguments.
     	String day = args[0];
     	String month = args[1];
@@ -34,21 +31,14 @@ public class App {
     	long seed = Long.parseLong(args[5]);
     	String droneType = args[6].toLowerCase();
     	
+    	// Run APP
     	new App(day, month, year, initDronePos, seed, droneType);
     	
-//    	Map<Position, Integer> a = new HashMap<Position, Integer>();
-//    	for (int i=0; i<10; i++) {
-//    		a.put(new Position(i,i), i);
-//    	}
-//    	
-//    	System.out.println(a.get(new Position(1,1)));
-    	
-//    	/**
-//    	 * This is for evaluating performance
-//    	 */
+    	/**
+    	 * This is for evaluating performance
+    	 */
 //    	String year;
 //    	String month;
-//    	String day;
 //    	Position init = new Position(55.944425, -3.188396);
 //    	int maxDay = 31;
 //    	int[] m30 = {4,6,9,11};
@@ -74,28 +64,36 @@ public class App {
 //    			}
 //    			
 //    			for (int d=1; d<=maxDay; d++) {
-//    				if (d < 10) {
-//        				day = "0" + d;
-//        			} else {
-//        				day = "" + d;
-//        			}
+//    				new Thread() {
+//    					public void run() {
+//        					try {
+//        				    	String day;
+//        						if (d < 10) {
+//        	        				day = "0" + d;
+//        	        			} else {
+//        	        				day = "" + d;
+//        	        			}
+//								new App(day, month, year, init, 5678, "stateful");
+//							} catch (Exception e) {
+//								// TODO Auto-generated catch block
+//								e.printStackTrace();
+//							}
+//    					}
+//    				}.start();
 //    				
-//    				new App(day, month, year, init, 5678, "stateful");
 //    			}
 //    		}
 //    	}
-    	
-		long endTime = System.currentTimeMillis();
-		System.out.println("Total Elapsed time in milliseconds: " + (endTime - startTime));
     }
     
     public App(String day, String month, String year, Position initDronePos, long seed, String droneType) throws Exception {
     	System.out.println(droneType+" drone is running in "+day+" "+month+" "+year);
     	long startTime = System.currentTimeMillis();
+    	
     	// Initiate stations
 		downloadMap(year, month, day);
 		
-		// Totoal coins
+		// Total coins
 		double totalCoins = getTotalCoins();
     	
     	// Initiate drone
@@ -111,10 +109,14 @@ public class App {
     		throw new ClassNotFoundException("Drone type is not found.");
     	}
     	
+    	// Create and write to geojson file.
     	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year);
     	PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
     	
+    	// Run the drone.
     	run(txtWriter, jsonWriter);
+    	
+    	// Evaluate the performance.
     	long endTime = System.currentTimeMillis();
     	System.out.println("Coins ratio: " + drone.coins/totalCoins);
 		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
@@ -132,11 +134,16 @@ public class App {
     
     private void run(PrintWriter txtWriter, PrintWriter jsonWriter) {
     	Feature f = null;
+    	
+    	// Run the drone.
 		f = drone.strategy();
 		txtWriter.close();
+		
+		// Add feature to features list and create a feature collection.
     	featuresList.add(f);
     	FeatureCollection fc = FeatureCollection.fromFeatures(featuresList);
- 
+    	
+    	// Append feature collection to geojson file.
 		jsonWriter.println(fc.toJson());
 		jsonWriter.close();
     }
@@ -169,18 +176,24 @@ public class App {
     private void parseSource(String mapSource) {
 	    FeatureCollection fc = FeatureCollection.fromJson(mapSource);
     	featuresList  = fc.features();
+    	String id = null;
+		double coins;
+		double power;
+		String icon = null;
+		String brightness = null;
+		Point point;
+		
+		// Create stations and add them to a list.
     	for (final Feature f : featuresList) {
-			String id = f.getProperty("id").getAsString();
-    		double coins = f.getProperty("coins").getAsFloat();
-    		double power = f.getProperty("power").getAsFloat();
-    		String icon = f.getProperty("marker-symbol").getAsString();
-    		String brightness = f.getProperty("marker-color").getAsString();
-    		Point point = (Point) f.geometry();
+			id = f.getProperty("id").getAsString();
+    		coins = f.getProperty("coins").getAsFloat();
+    		power = f.getProperty("power").getAsFloat();
+    		icon = f.getProperty("marker-symbol").getAsString();
+    		brightness = f.getProperty("marker-color").getAsString();
+    		point = (Point) f.geometry();
     		Position p = new Position(point.latitude(), point.longitude());
     		ChargingStation station = new ChargingStation(id, coins, power, icon, brightness, p);
     		stations.add(station);
-    	}
-		
+    	}	
     }
-    
 }

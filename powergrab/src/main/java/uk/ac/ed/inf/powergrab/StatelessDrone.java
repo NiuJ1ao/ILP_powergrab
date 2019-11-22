@@ -40,21 +40,36 @@ public class StatelessDrone extends Drone{
 				nextP = position.nextPosition(d);
 			
 				if (nextP.inPlayArea()) {		
-					nearestStation = findNearestStation(nextP);
+					nearestStation = findNearestStationInRange(nextP);
 					
-					if (nearestStation.distanceToDrone <= Constants.ACCESS_RANGE && nearestStation.coins != 0 
-							&& nearestStation.type == ChargingStation.LIGHTHOUSE) 
-					{
-						isMoved = move(d);
-						nearestStation.transferCoins(this);
-						nearestStation.transferPower(this);
-						points.add(positionToPoint(position));
-						break;
+					if (nearestStation != null) {
+						if (nearestStation.coins != 0 && nearestStation.type == ChargingStation.LIGHTHOUSE) 
+						{
+							isMoved = move(d);
+							nearestStation.transferCoins(this);
+							nearestStation.transferPower(this);
+							points.add(positionToPoint(position));
+							break;
+						}
+						
+						if (nearestStation.type != ChargingStation.SKULL) {
+							validDirection.add(d);
+						}
 					}
 					
-					if (nearestStation.type != ChargingStation.SKULL) {
-						validDirection.add(d);
-					}
+//					if (nearestStation.distanceToDrone <= ACCESS_RANGE && nearestStation.coins != 0 
+//							&& nearestStation.type == ChargingStation.LIGHTHOUSE) 
+//					{
+//						isMoved = move(d);
+//						nearestStation.transferCoins(this);
+//						nearestStation.transferPower(this);
+//						points.add(positionToPoint(position));
+//						break;
+//					}
+					
+//					if (nearestStation.type != ChargingStation.SKULL) {
+//						validDirection.add(d);
+//					}
 				}
 			}
 			
