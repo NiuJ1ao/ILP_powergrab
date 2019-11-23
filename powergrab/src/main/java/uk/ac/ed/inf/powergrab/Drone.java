@@ -60,10 +60,10 @@ public abstract class Drone {
 //		int length = stations.size();
 //		
 //		ChargingStation nearestStation = stations.get(0);
-//		double minDistance = nearestStation.distanceToDrone(p);
+//		double minDistance = nearestStation.distanceTo(p);
 //		for (int i=1; i<length; i++) {
 //			ChargingStation curStation = stations.get(i);
-//			distance = curStation.distanceToDrone(p);
+//			distance = curStation.distanceTo(p);
 //			if (distance < minDistance) {
 //				minDistance = distance;
 //				nearestStation = curStation;

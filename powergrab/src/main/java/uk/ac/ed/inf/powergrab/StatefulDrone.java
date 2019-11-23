@@ -42,24 +42,24 @@ public class StatefulDrone extends Drone{
 		points.addAll(followRoute(route)); // Follow the route by using A*
 		
 		// check any station left because A* could not calculate the path in time or just missed it.
-		List<ChargingStation> lefts = new ArrayList<ChargingStation>();
-		for (ChargingStation station : App.stations) {
-			if (station.coins > 0) {
-				lefts.add(station);
-//				System.out.println("Station Left: " + station.getId());
-			}
-		}
-		points.addAll(followRoute(lefts)); // Second attempt to arrive missed stations.
+//		List<ChargingStation> lefts; 
+//		do {
+//			lefts = new ArrayList<ChargingStation>();
+//			for (ChargingStation station : App.stations) {
+//				if (station.coins > 0) {
+//					lefts.add(station);
+//					System.out.println("Station Left: " + station.getId());
+//				}
+//			}
+//			points.addAll(followRoute(lefts)); // Second attempt to arrive missed stations.
+//		} while (!lefts.isEmpty() && !isGameOver());
+
 		
 		// Start random move until game over.
 		while (!isGameOver()) {
 			int idx = rnd.nextInt(directions.length);
 			Direction direction = directions[idx];
 			Position nextP = position.nextPosition(direction);
-//			if (nextP.inPlayArea() && findNearestStation(nextP).type == ChargingStation.LIGHTHOUSE) {					
-//				move(direction);
-//				points.add(positionToPoint(position));
-//			}
 			if (nextP.inPlayArea()) {	
 				ChargingStation s = findNearestStationInRange(nextP);
 				if (s == null || s.type == ChargingStation.LIGHTHOUSE)
@@ -90,7 +90,7 @@ public class StatefulDrone extends Drone{
 				Direction d = path.pop();
 				move(d);
 				points.add(positionToPoint(position));
-				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+//				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 			}		
 		}
 		return points;
@@ -107,14 +107,14 @@ public class StatefulDrone extends Drone{
 		int step = 0;
 		final double stepCost = 0.0003;
 		
-//		System.out.println("A* search algorithm is called");
+//		System.out.println("A* search algorithm is running");
 		
 		gScores.put(drone, 0.);
 		fScores.put(drone, station.distanceTo(drone));
 		Position current = drone;
 		
-		double minFScore = Double.MAX_VALUE;
-		while (true) {
+		double minFScore;
+		while (!fScores.isEmpty()) {
 			// Find the minimum f score and set current to relevant position;
 			minFScore = Double.MAX_VALUE;
 			for (Entry<Position, Double> pair : fScores.entrySet()) {
@@ -123,37 +123,43 @@ public class StatefulDrone extends Drone{
 					current = pair.getKey();
 				}
 			}
-
+			
+//			System.out.println("F-score: " + minFScore);
+			
 			// Goal test: the target station is the closest one and in access range.
-//			ChargingStation closestStation = findNearestStation(current);
-//			if (closestStation.equals(station) && station.distanceToDrone <= ACCESS_RANGE) {
-//				return reconstruct_path(cameFrom, current);
-//			}
 			ChargingStation closestStation = findNearestStationInRange(current);
 			if (closestStation != null && closestStation.equals(station)) {
 				return reconstruct_path(cameFrom, current);
 			}
 			
-			// A* time out, return current calculated path.
-			if (step>2000) {
+			// A* time out, carry on from current point again.
+			if (step>300) {
 //				System.out.println("GIVE UP!!!!");
-				return reconstruct_path(cameFrom, current);
+				Stack<Direction> after = aStar(current, station);
+				Stack<Direction> before = reconstruct_path(cameFrom, current);
+				after.addAll(before);
+				return after;
+//				return reconstruct_path(cameFrom, current);
 			}
 			
 			// Add neighbours
 			fScores.remove(current);
+//			visited.add(current);
 			List<Position> neighbors = nextPositions(current);
 			for (Position neighbor : neighbors) {
-				gScores.put(neighbor, gScores.get(current) + stepCost);
-				fScores.put(neighbor, gScores.get(neighbor) + station.distanceTo(neighbor));
+//				Position a = checkVisited(neighbor, visited);
+				double gScore = gScores.get(current) + stepCost;
+				double fScore = gScore + station.distanceTo(neighbor);
+				gScores.put(neighbor, gScore);
+				fScores.put(neighbor, fScore);
 				cameFrom.put(neighbor, current);
 			}
 			
 			step++;
 		}
-		
+		return null;
 	}
-	
+
 	private List<Position> nextPositions(Position p) {
 		Direction [] directions = Direction.values();
 		List<Position> result = new ArrayList<Position>();
@@ -163,13 +169,11 @@ public class StatefulDrone extends Drone{
 		for (Direction d : directions) {
 			next = p.nextPosition(d);
 			if (next.inPlayArea()) {
-//				nearestS = findNearestStation(next);
-//				if (nearestS.distanceToDrone > ACCESS_RANGE || nearestS.type == ChargingStation.LIGHTHOUSE) {
-//					result.add(next);
-//				}
 				nearestS = findNearestStationInRange(next);
-				if (nearestS == null || nearestS.type == ChargingStation.LIGHTHOUSE) {
+				if (nearestS == null) {
 					result.add(next);
+				} else if (nearestS.type == ChargingStation.LIGHTHOUSE) {
+						result.add(next);
 				}
 			}
 		}	

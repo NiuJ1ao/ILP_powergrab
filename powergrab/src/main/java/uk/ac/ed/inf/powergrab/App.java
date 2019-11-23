@@ -64,30 +64,20 @@ public class App {
 //    			}
 //    			
 //    			for (int d=1; d<=maxDay; d++) {
-//    				new Thread() {
-//    					public void run() {
-//        					try {
-//        				    	String day;
-//        						if (d < 10) {
-//        	        				day = "0" + d;
-//        	        			} else {
-//        	        				day = "" + d;
-//        	        			}
-//								new App(day, month, year, init, 5678, "stateful");
-//							} catch (Exception e) {
-//								// TODO Auto-generated catch block
-//								e.printStackTrace();
-//							}
-//    					}
-//    				}.start();
-//    				
+//			    	String day;
+//					if (d < 10) {
+//        				day = "0" + d;
+//        			} else {
+//        				day = "" + d;
+//        			}
+//					new App(day, month, year, init, 5678, "stateful");
 //    			}
 //    		}
 //    	}
     }
     
     public App(String day, String month, String year, Position initDronePos, long seed, String droneType) throws Exception {
-    	System.out.println(droneType+" drone is running in "+day+" "+month+" "+year);
+    	System.out.println("==== "+droneType+" drone is running in "+day+" "+month+" "+year+" "+"====");
     	long startTime = System.currentTimeMillis();
     	
     	// Initiate stations
@@ -118,8 +108,11 @@ public class App {
     	
     	// Evaluate the performance.
     	long endTime = System.currentTimeMillis();
-    	System.out.println("Coins ratio: " + drone.coins/totalCoins);
-		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
+    	if (drone.coins/totalCoins < 1 || endTime - startTime>1000) {
+    		System.out.println("OOPS");
+    		System.out.println("Coins ratio: " + drone.coins/totalCoins);
+    		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
+    	}
     }
     
     private double getTotalCoins() {
