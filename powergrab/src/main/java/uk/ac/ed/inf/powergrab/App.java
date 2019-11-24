@@ -108,7 +108,8 @@ public class App {
     	
     	// Evaluate the performance.
     	long endTime = System.currentTimeMillis();
-    	if (drone.coins/totalCoins < 1 || endTime - startTime>1000) {
+    	if (drone.coins/totalCoins < 1 || endTime - startTime>500) {
+//    		System.out.println("==== "+droneType+" drone is running in "+day+" "+month+" "+year+" "+"====");
     		System.out.println("OOPS");
     		System.out.println("Coins ratio: " + drone.coins/totalCoins);
     		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
