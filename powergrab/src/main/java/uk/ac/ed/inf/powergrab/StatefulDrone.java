@@ -93,7 +93,7 @@ public class StatefulDrone extends Drone{
 				Direction d = path.pop();
 				move(d);
 				points.add(positionToPoint(position));
-				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+//				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
 			}		
 		}
 		return points;
@@ -111,7 +111,7 @@ public class StatefulDrone extends Drone{
 //		Set<Position> open = new HashSet<Position>();
 		Set<Position> close = new HashSet<Position>();
 		int step = 0;
-		int threshold = 1250;
+		int threshold = 1250; // Experimental result
 		final double stepCost = 0.0003;
 		
 //		System.out.println("A* search algorithm is running");
@@ -172,7 +172,8 @@ public class StatefulDrone extends Drone{
 //					Position oldInClose = checkList(neighbor, close);
 //					if (oldInOpen == null && oldInClose == null) {
 //				if (!checkList(neighbor, open) && !checkList(neighbor, close)) {
-				if (!fScores.containsKey(fScore) && !checkList(neighbor, close)) {
+//				if (!fScores.containsKey(fScore) && !checkList(neighbor, close)) {
+				if (!checkList(neighbor, close)) {
 //					if (oldInOpen != null) {
 //						if (gScore < gScores.get(oldInOpen)) {
 //							System.out.println("Open improved");

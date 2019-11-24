@@ -4,6 +4,7 @@ longitude=-3.188396
 seed=5678
 drone="stateful"
 
+clear
 for year in 2019 2020
 do
     for month in $(seq -f "%02g" 1 12)
