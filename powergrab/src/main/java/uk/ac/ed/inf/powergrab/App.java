@@ -15,11 +15,11 @@ import com.mapbox.geojson.*;
 
 
 /**
- *
- *
+ * App is the main part of this application, like a interface. It contains the informations about stations and the drone.
+ * I used this function directly instead of creating a new class called map. It is because I think App class can represent the map. 
+ * @author s1740055
  */
 public class App {
-	//private String mapSource;
 	protected static List<ChargingStation> stations = new ArrayList<ChargingStation>();
 	private static Drone drone;
 	List<Feature> featuresList = null;
@@ -78,7 +78,7 @@ public class App {
     	
     	// Evaluate the performance.
     	long endTime = System.currentTimeMillis();
-    	if (drone.coins/totalCoins < 1 || endTime - startTime>500) {
+    	if (drone.coins/totalCoins < 1 || endTime - startTime>1000) {
     		System.out.println("==== "+droneType+" drone is running in "+day+" "+month+" "+year+" "+"====");
     		System.out.println("Coins ratio: " + drone.coins/totalCoins);
     		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));

@@ -5,6 +5,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import com.mapbox.geojson.Feature;
 
+/**
+ * 
+ * 
+ * @author s1740055
+ */
 public class StatelessDrone extends Drone{
 
 	StatelessDrone(Position p, long seed, PrintWriter writer) {

@@ -12,6 +12,11 @@ import java.util.Stack;
 import java.util.TreeMap;
 import com.mapbox.geojson.Feature;
 
+/**
+ * 
+ * 
+ * @author s1740055
+ */
 public class StatefulDrone extends Drone{
 
 	private Map<Integer, Direction> radianToDirection = new HashMap<Integer, Direction>();
@@ -308,7 +313,7 @@ public class StatefulDrone extends Drone{
 	}
 	
 	/**
-	 * This calculates the length of the new route from the old one. 
+	 * A helper function for 2-opt. This calculates the length of the new route from the old one. 
 	 * @param route       The old route
 	 * @param a           The start index of swapping
 	 * @param b  		  The end index of swapping

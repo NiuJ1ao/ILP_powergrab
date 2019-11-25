@@ -1,5 +1,20 @@
 package uk.ac.ed.inf.powergrab;
 
+/**
+ * ChargingStation encapsulates the useful informations of a charging station.
+ * The data includes:
+ * <ul>
+ * <li>The coins stored in the station
+ * <li>The power stored in the station
+ * <li>The position of the station.
+ * <li>The type of drone.
+ * </ul>
+ * <p>
+ * It also provides two constants for further checking the type of a charging station,
+ * and several functions to update the informations of the station.
+ * 
+ * @author s1740055
+ */
 public class ChargingStation { 
 	
 	double coins;
@@ -10,7 +25,7 @@ public class ChargingStation {
 	static final boolean SKULL = false;
 	
 	/**
-	 * The constructor of charging station. Keeps relevant information.
+	 * The constructor of charging station.
 	 * @param coins
 	 * @param power
 	 * @param position

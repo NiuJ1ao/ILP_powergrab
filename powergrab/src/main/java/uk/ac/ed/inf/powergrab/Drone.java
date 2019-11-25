@@ -10,6 +10,27 @@ import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 
+/**
+ * Drone is the abstract class for both stateful and stateless drone. 
+ * A drone object encapsulates the state information of the drone. This 
+ * state information includes:
+ * <ul>
+ * <li>The position of the drone
+ * <li>The coins and remaining power in the drone.
+ * <li>The random seed for the random move of the drone.
+ * <li>A file writer to record status changes of the drone.
+ * <li>A array of points records the location after each movement. 
+ * 	   This is returned to generate GeoJSON file.
+ * There are some constants as well:
+ * <li>The access range determines the distance about the drone can connect to a station.
+ * <li>The power consumption is how much power is reduced for each movement.
+ * <li>The minimum payload range is the lower boundary of power and coins. This improves readability.
+ * </ul>
+ * <p>
+ * This class also provides some helper functions for both stateful and stateless drone to implement there strategies.
+ * 
+ * @author s1740055
+ */
 public abstract class Drone {
 	
 	Position position;
@@ -61,8 +82,8 @@ public abstract class Drone {
 			station.transferPower(this);
 		}
 		points.add(positionToPoint(position));
-		writer.println(prev.latitude +" "+ prev.longitude +" "+ direction +" "+ position.latitude +" "+ position.longitude +" "+ coins +" "+ power);
-//		System.out.println(steps+" - coins: "+coins+", power: "+power);
+		writer.println(prev.latitude +","+ prev.longitude +","+ direction +","+ position.latitude +","+ position.longitude +","+ coins +","+ power);
+		System.out.println(steps+" - coins: "+coins+", power: "+power);
 	}
 	
 	/**
