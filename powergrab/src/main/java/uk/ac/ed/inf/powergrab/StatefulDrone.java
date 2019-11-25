@@ -10,17 +10,20 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
-
-import com.google.gson.JsonObject;
 import com.mapbox.geojson.Feature;
-import com.mapbox.geojson.LineString;
-import com.mapbox.geojson.Point;
 
 public class StatefulDrone extends Drone{
 
 	private Map<Integer, Direction> radianToDirection = new HashMap<Integer, Direction>();
 	
-	public StatefulDrone(Position p, long seed, PrintWriter writer) {
+	/**
+	 * Constructor of stateful drone. It initialises stateful drone as normal drone.
+	 * But this creates a HashMap which contains angles and related direction and will be used later.
+	 * @param p
+	 * @param seed
+	 * @param writer
+	 */
+	StatefulDrone(Position p, long seed, PrintWriter writer) {
 		super(p, seed, writer);
 		
 		// Create a HashMap for A* to retrieve the direction between two points.
@@ -33,30 +36,17 @@ public class StatefulDrone extends Drone{
 		}
 	}
 	
+	/**
+	 * For stateful drone, greedy and 2-opt algorithm is used for finding the access order of light houses.
+	 * And A* is used for looking for the path from current position of the drone to a specific station.
+	 */
 	@Override
-	public Feature strategy() {
-		List<Point> points = new ArrayList<Point>();
+	Feature strategy() {
 		points.add(positionToPoint(position));
 		Direction[] directions = Direction.values();
 		
-//		System.out.println("Stateful strategy is called");
-		
-		List<ChargingStation> route = greedyAlgorithm(position); // Get the access order of light houses.
-		points.addAll(followRoute(route)); // Follow the route by using A*
-		
-		// check any station left because A* could not calculate the path in time or just missed it.
-//		List<ChargingStation> lefts; 
-//		do {
-//			lefts = new ArrayList<ChargingStation>();
-//			for (ChargingStation station : App.stations) {
-//				if (station.coins > 0) {
-//					lefts.add(station);
-////					System.out.println("Station Left: " + station.getId());
-//				}
-//			}
-//			points.addAll(followRoute(lefts)); // Second attempt to arrive missed stations.
-//		} while (!lefts.isEmpty() && !isGameOver());
-
+		List<ChargingStation> route = greedyAlgorithm(); // Get the access order of light houses.
+		followRoute(route); 						 	 // Follow the route by using A*
 		
 		// Start random move until game over.
 		while (!isGameOver()) {
@@ -64,177 +54,133 @@ public class StatefulDrone extends Drone{
 			Direction direction = directions[idx];
 			Position nextP = position.nextPosition(direction);
 			if (nextP.inPlayArea()) {	
-				ChargingStation s = findNearestStationInRange(nextP);
-				if (s == null || s.type == ChargingStation.LIGHTHOUSE)
-				move(direction);
-				points.add(positionToPoint(position));
+				ChargingStation station = findNearestStationInRange(nextP);			 // Avoid skulls.
+				if (station == null || station.type == ChargingStation.LIGHTHOUSE) { 
+					move(direction, station);
+				}
 			}
 		}
 		
-		// Create LineString feature to return.
-		LineString ls = LineString.fromLngLats(points);
-		Feature f = Feature.fromGeometry(ls, new JsonObject());
-		return f;
+		return getLineString();
 	}
 	
-	private List<Point> followRoute(List<ChargingStation> route) {
-		List<Point> points = new ArrayList<Point>();
+	/**
+	 * It follows the route returned by greedy and 2-opt algorithm.
+	 * The drone follows the path calculated by A* from current position to the station iteratively
+	 * @param route The route to follow.
+	 */
+	private void followRoute(List<ChargingStation> route) {
 		Stack<Direction> path;
+		
 		for (ChargingStation station : route) {
 			if (isGameOver()) { // Game over, exit
 				break;
-			}
+			}		
+			// Use A* to find a path to station.
+			path = aStar(position, station, 0);	
 			
-			// Use a star to find the path to station
-			path = aStar(position, station, 0);
-//			System.out.println(path);
 			// Follow the path
-			while(!isGameOver() && !path.isEmpty()) {
+			while(path != null && !isGameOver() && !path.isEmpty()) {
 				Direction d = path.pop();
-				move(d);
-				points.add(positionToPoint(position));
-//				System.out.println(points.size()-1 + " - Coins: " + coins + "; Power: " + power);
+				move(d, null);
 			}		
 		}
-		return points;
 	}
 	
 	
 	/*******************************
 	 **  A Star Search Algorithm  **
 	 *******************************/
+	/**
+	 * This function performs A* algorithm from current location to the target station.
+	 * @param drone   The position of the drone.
+	 * @param station The target station
+	 * @param attempt A count about how many times the A* is performed for this station.
+	 * @return		  It returns a Stack of directions for the drone to follow.
+	 * 
+	 * @see 		  <a href="https://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>
+	 */
 	private Stack<Direction> aStar(Position drone, ChargingStation station, int attempt) {
 		Map<Position, Double> gScores = new HashMap<Position, Double>();
-//		Map<Position, Double> fScores = new HashMap<Position, Double>();
 		TreeMap<Double, Position> fScores = new TreeMap<Double, Position>();
 		Map<Position, Position> cameFrom = new HashMap<Position, Position>();
-//		Set<Position> open = new HashSet<Position>();
-		Set<Position> close = new HashSet<Position>();
+		Set<Position> visited = new HashSet<Position>();
 		int step = 0;
 		int threshold = 1250; // Experimental result
 		final double stepCost = 0.0003;
 		
-//		System.out.println("A* search algorithm is running");
-//		open.add(drone);
+		// Initialise start position and add to A*.
 		gScores.put(drone, 0.);
 		fScores.put(station.distanceTo(drone), drone);
 		Position current = drone;
 		
-//		double minFScore;
-		while (!fScores.isEmpty()) {
+		while (!fScores.isEmpty()) {			
 			// Find the minimum f score and set current to relevant position;
-//			minFScore = Double.MAX_VALUE;
-//			for (Entry<Position, Double> pair : fScores.entrySet()) {
-//				if (pair.getValue() < minFScore) {
-//					minFScore = pair.getValue();
-//					current = pair.getKey();
-//				}
-//			}
 			Entry<Double, Position> minPair = fScores.pollFirstEntry();
-//			minFScore = minPair.getKey();
 			current = minPair.getValue();
-			
-//			minFScore = Double.MAX_VALUE;
-//			for (Position position : open) {
-//				if (fScores.get(position) < minFScore) {
-//					minFScore = fScores.get(position);
-//					current = position;
-//				}
-//			}
-			
-//			System.out.println("F-score: " + minFScore);
-			
-			// Goal test: the target station is the closest one and in access range.
 
-			if (step > threshold && attempt < 3) { // A* time out, try again from current point recursively.
-				System.out.println("Time out, carry on");
-				Stack<Direction> after = aStar(current, station, attempt+1);
-				Stack<Direction> before = reconstruct_path(cameFrom, current);
-				after.addAll(before);
+			if (step > threshold && attempt < 3) { 								// A* time out
+				Stack<Direction> after = aStar(current, station, attempt+1);	// try again from current position recursively
+				Stack<Direction> before = reconstruct_path(cameFrom, current);  // construct a path from start position to current position
+				after.addAll(before);											// add them together and return.
 				return after;
-			} else if (step > threshold) { // Give up
-				System.out.println("Give up");
+			} else if (step > threshold) { 										// Try too many times, GIVE UP.
 				return reconstruct_path(cameFrom, current);
 			}
 			
-			// Add neighbours
-//			open.remove(current);
-			List<Position> neighbors = nextPositions(current);
-			for (Position neighbor : neighbors) {
-				ChargingStation closestStation = findNearestStationInRange(neighbor);
-				if (closestStation != null && closestStation.equals(station)) {
-					cameFrom.put(neighbor, current);
-					return reconstruct_path(cameFrom, neighbor);
+			// Check neighbours
+			Position neighbour;
+			ChargingStation nearestS;
+			Direction [] directions = Direction.values();
+			for (Direction d : directions) {
+				neighbour = current.nextPosition(d);
+				if (neighbour.inPlayArea()) {					
+					// Goal test: the target station is the closest one and in access range.
+					nearestS = findNearestStationInRange(neighbour);
+					if (nearestS != null && nearestS.equals(station)) {
+						cameFrom.put(neighbour, current);
+						return reconstruct_path(cameFrom, neighbour);
+					}
+					
+					if (nearestS == null || nearestS.type == ChargingStation.LIGHTHOUSE) { // Check if that direction is dangerous.
+						double gScore = gScores.get(current) + stepCost;
+						double fScore = gScore + station.distanceTo(neighbour);
+						if (!checkVisited(neighbour, visited)) { 						   // Check if the neighbour is visited.
+							gScores.put(neighbour, gScore);
+							fScores.put(fScore, neighbour);
+							cameFrom.put(neighbour, current);
+						}
+					}
 				}
-				double gScore = gScores.get(current) + stepCost;
-				double fScore = gScore + station.distanceTo(neighbor);
-//					Position oldInOpen = checkList(neighbor, open);
-//					Position oldInClose = checkList(neighbor, close);
-//					if (oldInOpen == null && oldInClose == null) {
-//				if (!checkList(neighbor, open) && !checkList(neighbor, close)) {
-//				if (!fScores.containsKey(fScore) && !checkList(neighbor, close)) {
-				if (!checkList(neighbor, close)) {
-//					if (oldInOpen != null) {
-//						if (gScore < gScores.get(oldInOpen)) {
-//							System.out.println("Open improved");
-//							open.remove(oldInOpen);
-//							gScores.replace(oldInOpen, gScore);
-//							fScores.replace(oldInOpen, fScore);
-//							cameFrom.replace(oldInOpen, current);
-//						}
-//					} else if (oldInClose != null) {	
-//						if (gScore < gScores.get(oldInClose)) {
-//							System.out.println("close found");
-//							close.remove(oldInClose);
-//							gScores.replace(oldInClose, gScore);
-//							fScores.replace(oldInClose, fScore);
-//							cameFrom.replace(oldInClose, current);
-//						}
-//					} else {
-//						System.out.println("old not found");
-//					open.add(neighbor);
-					gScores.put(neighbor, gScore);
-					fScores.put(fScore, neighbor);
-					cameFrom.put(neighbor, current);
-				}
-				
-			}
-			close.add(current);
+			}	
+			visited.add(current);
 			step++;
 		}
 		return null;
 	}
-
-	private boolean checkList(Position position, Set<Position> list) {
-		for (Position p : list) {
-			if (p.latitude == position.latitude && p.longitude == position.longitude) {
+	
+	/**
+	 * A helper function of A*, it checks whether the position is visited or not.
+	 * @param current  The position for check.
+	 * @param visited  The set of Positions are visited before.
+	 * @return		   A boolean value determines whether the position is in visited or not.
+	 */
+	private boolean checkVisited(Position current, Set<Position> visited) {
+		for (Position p : visited) {
+			if (p.latitude == current.latitude && p.longitude == current.longitude) {
 				return true;
 			}
 		}
 		return false;
 	}
 	
-	private List<Position> nextPositions(Position p) {
-		Direction [] directions = Direction.values();
-		List<Position> result = new ArrayList<Position>();
-		Position next;
-		ChargingStation nearestS;
-		
-		for (Direction d : directions) {
-			next = p.nextPosition(d);
-			if (next.inPlayArea()) {
-				nearestS = findNearestStationInRange(next);
-				if (nearestS == null) {
-					result.add(next);
-				} else if (nearestS.type == ChargingStation.LIGHTHOUSE) {
-						result.add(next);
-				}
-			}
-		}	
-		
-		return result;
-	}
-	
+	/**
+	 * A helper function of A*, it backtracks the cameFrom map from current position to the start position, 
+	 * and transfers the angle between positions to direction for the drone to follow.
+	 * @param cameFrom A Map<Postion, Position> data, each pair is the position and its parent.
+	 * @param current  The position where A* finished.
+	 * @return		   A stack of directions for the drone to follow.
+	 */
 	private Stack<Direction> reconstruct_path(Map<Position, Position> cameFrom, Position current) {
 		Stack<Direction> path = new Stack<Direction>();
 		Position prev = null;
@@ -242,11 +188,10 @@ public class StatefulDrone extends Drone{
 		double radian;
 		double dividor = Math.PI/8;
 		
-//		System.out.println("reconstruct_path is called");
 		while (cameFrom.containsKey(current)) {
-			prev = cameFrom.get(current);
-			radian = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude);
-			d = radianToDirection.get((int) Math.round(radian/dividor));
+			prev = cameFrom.get(current);														   // backtrack the cameFrom map.
+			radian = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude); // Calculate the radian between two positions.
+			d = radianToDirection.get((int) Math.round(radian/dividor));						   // Get related direction of the radian.
 			path.add(d);
 			current = prev;
 		}
@@ -257,16 +202,21 @@ public class StatefulDrone extends Drone{
 	/*************************
 	 **   Greedy + 2-opt    **
 	 *************************/
-	private List<ChargingStation> greedyAlgorithm(Position start) {
+	/**
+	 * This function performs greedy algorithm for all light houses initially 
+	 * to get a greedy route which determines the order of stations the drone flies to.
+	 * Then the route is optimised by 2-opt algorithm.
+	 * @return The locally optimised route tells the access order of stations.
+	 */
+	private List<ChargingStation> greedyAlgorithm() {
 		final List<ChargingStation> lightHouses = new ArrayList<ChargingStation>();
 		App.stations.forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
 		List<ChargingStation> route = new ArrayList<ChargingStation>();
 		double routeLength = 0;
-//		System.out.println("Greedy is called");
 		
-		Position current = start;
+		Position current = position;
 		while (!lightHouses.isEmpty()) {
-			// find the nearest lighthouse;
+			// find the nearest lighthouse from current;
 			ChargingStation closestStation = lightHouses.get(0);
 			double minDist = closestStation.distanceTo(current);
 			int length = lightHouses.size();
@@ -284,23 +234,32 @@ public class StatefulDrone extends Drone{
 			lightHouses.remove(closestStation);
 		}
 		
-		return twoOptOptimization(start, route, routeLength);
+		return twoOptOptimization(route, routeLength);
 	}
 	
-	private List<ChargingStation> twoOptOptimization(Position start, List<ChargingStation> route, double routeLength) {
-//		System.out.println("2-opt is running");
+	/**
+	 * This function calculates more optimal route from the greedy one 
+	 * by comparing every possible valid combination of the swapping mechanism.
+	 * @param route       The greedy route
+	 * @param routeLength The length of greedy route.
+	 * @return			  The optimised route.
+	 * 
+	 * @see 			  <a href="https://en.wikipedia.org/wiki/2-opt">2-opt</a>
+	 */
+	private List<ChargingStation> twoOptOptimization(List<ChargingStation> route, double routeLength) {
 		double currentPerformance = 0;
 		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
 		int numOfStations = route.size();
 		double newLength = 0;
 		boolean isImproved;
+		
 		while (currentPerformance != routeLength) {
 			currentPerformance = routeLength;
 			isImproved = false;
 			for (int i=0; i<numOfStations-1; i++) {
 				for (int j=i+1; j<numOfStations; j++) {
 					newRoute = twoOptSwap(route, i, j);
-					newLength = evaluateRoute(start, route, i, j, routeLength);
+					newLength = evaluateRoute(route, i, j, routeLength);
 					if (newLength < routeLength) {
 						route = newRoute;
 						routeLength = newLength;
@@ -318,6 +277,20 @@ public class StatefulDrone extends Drone{
 		return route;
 	}
 	
+	/**
+	 * A helper function for 2-opt. This uses a swap mechanism to get a new route.
+	 * The pseudocode is shown below,
+	 * 2optSwap(route, a, b) {
+     *   1. take route[0] to route[a-1] and add them in order to new_route
+     *   2. take route[a] to route[b] and add them in reverse order to new_route
+     *   3. take route[b+1] to end and add them in order to new_route
+     *   return new_route;
+   	 * }
+	 * @param current The current route
+	 * @param a		  The start index to swap
+	 * @param b		  The end index to swap
+	 * @return		  The route after swapping
+	 */
 	private List<ChargingStation> twoOptSwap(List<ChargingStation> current, int a, int b) {
 		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
 		
@@ -334,17 +307,23 @@ public class StatefulDrone extends Drone{
 		return newRoute;
 	}
 	
-	private double evaluateRoute(Position start, List<ChargingStation> route, int a, int b, double routeLength) {
+	/**
+	 * This calculates the length of the new route from the old one. 
+	 * @param route       The old route
+	 * @param a           The start index of swapping
+	 * @param b  		  The end index of swapping
+	 * @param routeLength The length of the old route
+	 * @return			  The length of the new route.
+	 */
+	private double evaluateRoute(List<ChargingStation> route, int a, int b, double routeLength) {
 		int max = route.size()-1;
 		
 		if (a==0 && b==max) {
-			return routeLength - route.get(a).distanceTo(start) + route.get(b).distanceTo(start);
-		}
-		else if (a == 0) {
-			return routeLength - route.get(b).distanceTo(route.get(b+1).position) - route.get(a).distanceTo(start) 
-					+ route.get(b).distanceTo(start) + route.get(a).distanceTo(route.get(b+1).position);
-		} 
-		else if (b==max) {
+			return routeLength - route.get(a).distanceTo(position) + route.get(b).distanceTo(position);
+		} else if (a == 0) {
+			return routeLength - route.get(b).distanceTo(route.get(b+1).position) - route.get(a).distanceTo(position) 
+					+ route.get(b).distanceTo(position) + route.get(a).distanceTo(route.get(b+1).position);
+		} else if (b==max) {
 			return routeLength - route.get(a-1).distanceTo(route.get(a).position) + route.get(a-1).distanceTo(route.get(b).position);
 		} else {
 			return routeLength - route.get(a-1).distanceTo(route.get(a).position) - route.get(b).distanceTo(route.get(b+1).position) 

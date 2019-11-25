@@ -2,63 +2,51 @@ package uk.ac.ed.inf.powergrab;
 
 public class ChargingStation { 
 	
-	private String id = new String();
-	protected double coins;
-	protected double power;
-	private String icon = new String();
-	private String brightness = new String();
-	protected final Position position;
-	protected final boolean type;
-	protected double distanceToDrone;
-	protected static final boolean LIGHTHOUSE = true;
-	protected static final boolean SKULL = false;
+	double coins;
+	double power;
+	final Position position;
+	final boolean type;
+	static final boolean LIGHTHOUSE = true;
+	static final boolean SKULL = false;
 	
-	public ChargingStation(String id, double coins, double power, String icon, String brightness, Position p) {
-		this.id = id;
+	/**
+	 * The constructor of charging station. Keeps relevant information.
+	 * @param coins
+	 * @param power
+	 * @param position
+	 */
+	ChargingStation(double coins, double power, Position position) {
 		this.coins = coins;
 		this.power = power;
-		this.icon = icon;
-		this.brightness = brightness;
-		this.position = p;		
+		this.position = position;		
 		type = coins > 0 || power > 0;
 	}
-
-	public void transferCoins(Drone drone) {
+	
+	/**
+	 * This function coins transformation request to the drone and update the coins of station by how many the drone takes.
+	 * @param drone The drone which is connected to the station.
+	 */
+	void transferCoins(Drone drone) {
 		double amount = drone.transferCoins(coins);
 		coins -= amount;
 	}
 	
-	public void transferPower(Drone drone) {
+	/**
+	 * This function sends power transformation request to the drone and update the power of station by how much the drone takes.
+	 * @param drone The drone which is connected to the station.
+	 */
+	void transferPower(Drone drone) {
 		double amount = drone.transferPower(power);
 		power -= amount;
 	}
 	
-//	public double distanceToDrone(Position drone) {
-//		distanceToDrone = pythagoreanDistance(drone, position);
-//		return distanceToDrone;
-//	}
-//	
-	public double distanceTo(Position p) {
-		return pythagoreanDistance(p, position);
-	}
-	
-	private double pythagoreanDistance(Position position, Position station) {
-		double distance = Math.sqrt(Math.pow(station.latitude - position.latitude, 2) 
-				+ Math.pow(station.longitude - position.longitude, 2));
-		return distance;
-	}
-	/***
-	 * Getters for private variables.
+	/**
+	 * This calculates the Euclidean distance from this station to the given position.
+	 * @param p The position of destination.
+	 * @return  The distance from current station to the position.
 	 */
-	public String getId() {
-		return id;
-	}
-	
-	public String getBrightness() {
-		return brightness;
-	}
-
-	public String getIcon() {
-		return icon;
+	double distanceTo(Position p) {
+		return Math.sqrt(Math.pow(position.latitude - p.latitude, 2) 
+				+ Math.pow(position.longitude - p.longitude, 2));
 	}
 }

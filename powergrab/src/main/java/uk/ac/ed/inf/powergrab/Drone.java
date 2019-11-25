@@ -1,79 +1,76 @@
 package uk.ac.ed.inf.powergrab;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import com.mapbox.geojson.Feature;
-import com.mapbox.geojson.Point;
 
+import com.google.gson.JsonObject;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.LineString;
+import com.mapbox.geojson.Point;
 
 public abstract class Drone {
 	
-	public Position position;
-	public double coins;
-	public double power;
-	protected Random rnd;
-	final double MINPAYLOAD = 0.0;
-	final double ACCESS_RANGE = 0.00025;
-	final double POWER_CONSUMPTION = 1.25;
-	protected int steps;
+	Position position;
+	double coins;
+	double power;
+	Random rnd;
+	private int steps;
 	private PrintWriter writer;
+	List<Point> points = new ArrayList<Point>();
 	
-	public Drone(Position p, long seed, PrintWriter writer) {
-		this.position = p;
+	final double ACCESS_RANGE = 0.00025;
+	private final double POWER_CONSUMPTION = 1.25;
+	private final double MIN_PAYLOAD = 0.0;
+	
+	/**
+	 * Constructor of Drone. It initialises the drone.
+	 * @param position The position where the drone starts.
+	 * @param seed	   The random seed for random moves.
+	 * @param writer   The writer to record the status of the drone in text file.
+	 */
+	Drone(Position position, long seed, PrintWriter writer) {
+		this.position = position;
 		this.coins = 0;
 		this.power = 250;
 		this.rnd = new Random(seed);
 		this.steps = 0;
 		this.writer = writer;
+		points.add(positionToPoint(position));
 	}
 	
-	public boolean move(Direction d) {
-		Position p = position.nextPosition(d);
-		Position prev = position;
-		if (p.inPlayArea()) {			
-			position = p;
-			power = power - POWER_CONSUMPTION;
-			steps++;
-			
-//			ChargingStation s = findNearestStation(position);
-//			if (s.distanceToDrone <= ACCESS_RANGE) {
-//				s.transferCoins(this);
-//				s.transferPower(this);
-//			}
-			
-			ChargingStation s = findNearestStationInRange(position);
-			if (s != null) {
-				s.transferCoins(this);
-				s.transferPower(this);
-			}
-			
-			writer.println(prev.latitude +" "+ prev.longitude +" "+ d +" "+ position.latitude +" "+ position.longitude +" "+ coins +" "+ power);
-			return true;
+	/**
+	 * This function moves the drone by given direction. It also transfers coins and power when the drone can connect to any station.
+	 * @param direction The direction which the drone should fly to.
+	 * @param station	The pre-calculated station which should be connected by the drone after move. 
+	 * 					If it is null, it will be calculated again in this function.
+	 */
+	void move(Direction direction, ChargingStation station) {
+		Position p = position.nextPosition(direction);
+		Position prev = position;		
+		position = p;
+		power = power - POWER_CONSUMPTION;
+		steps++;
+		
+		if (station == null) {
+			station = findNearestStationInRange(position);
 		}
-		return false;
+		if (station != null) {
+			station.transferCoins(this);
+			station.transferPower(this);
+		}
+		points.add(positionToPoint(position));
+		writer.println(prev.latitude +" "+ prev.longitude +" "+ direction +" "+ position.latitude +" "+ position.longitude +" "+ coins +" "+ power);
+//		System.out.println(steps+" - coins: "+coins+", power: "+power);
 	}
 	
-//	public ChargingStation findNearestStation(Position p){
-//		double distance = 0;
-//		List<ChargingStation> stations = App.stations;
-//		int length = stations.size();
-//		
-//		ChargingStation nearestStation = stations.get(0);
-//		double minDistance = nearestStation.distanceTo(p);
-//		for (int i=1; i<length; i++) {
-//			ChargingStation curStation = stations.get(i);
-//			distance = curStation.distanceTo(p);
-//			if (distance < minDistance) {
-//				minDistance = distance;
-//				nearestStation = curStation;
-//			}
-//		}
-//		
-//		return nearestStation;
-//	}
-	
-	public ChargingStation findNearestStationInRange(Position p) {
+	/**
+	 * Find out which station can be connected from given position.
+	 * @param p The position for calculation.
+	 * @return  The station can be connected or null.
+	 */
+	ChargingStation findNearestStationInRange(Position p) {
 		double distance = 0;
 		List<ChargingStation> stations = App.stations;
 		ChargingStation nearestStation = null;
@@ -93,25 +90,35 @@ public abstract class Drone {
 		return nearestStation;
 	}
 	
-	public double transferCoins(double amount) {
+	/**
+	 * It processes the transformation request from station and retrieves as many coins as the drone need.
+	 * @param amount The amount of coins in the station.
+	 * @return 		 The amount of coins the drone have taken.
+	 */
+	double transferCoins(double amount) {
 		double sum = coins + amount;
 		
-		if (sum < MINPAYLOAD) {
+		if (sum < MIN_PAYLOAD) { // If the the coins of drone is approaching negative, the coins of drone will be zero and return how many it takes.
 			amount = -coins;
-			coins = MINPAYLOAD;
+			coins = MIN_PAYLOAD;
 			return amount;
-		} else {
+		} else {				 // Takes all
 			coins = sum;
 			return amount;
 		}
 	}
 	
-	public double transferPower(double amount) {
+	/**
+	 * It processes the transformation request from station and retrieves as much power as the drone need.
+	 * @param amount The amount of power in the station.
+	 * @return 		 The amount of power the drone have taken.
+	 */
+	double transferPower(double amount) {
 		double sum = power + amount;
 		
-		if (sum < MINPAYLOAD) {
+		if (sum < MIN_PAYLOAD) {
 			amount = -power;
-			power = MINPAYLOAD;
+			power = MIN_PAYLOAD;
 			return amount;
 		} else {
 			power = sum;
@@ -119,13 +126,36 @@ public abstract class Drone {
 		}
 	}
 	
-	public boolean isGameOver() {
+	/**
+	 * It checks if the game is over.
+	 * @return A boolean value determines whether the game is over or not.
+	 */
+	boolean isGameOver() {
 		return power < POWER_CONSUMPTION || steps == 250;
 	}
 	
-	public Point positionToPoint(Position position) {
+	/**
+	 * This function parses Position to Point.
+	 * @param position The position need to be parsed.
+	 * @return 		   The relevant Point data.
+	 */
+	Point positionToPoint(Position position) {
 		return Point.fromLngLat(position.longitude, position.latitude);
 	}
-
-	public abstract Feature strategy();
+	
+	/**
+	 * This changes the array of Points to a LineString
+	 * @return The LineString represents the movements of the drone.
+	 */
+	Feature getLineString() {
+		LineString ls = LineString.fromLngLats(points);
+		Feature f = Feature.fromGeometry(ls, new JsonObject());
+		return f;
+	}
+	
+	/**
+	 * The actual function determines how the drone flies.
+	 * @return The LineString of the path of drone.
+	 */
+    abstract Feature strategy();
 }
