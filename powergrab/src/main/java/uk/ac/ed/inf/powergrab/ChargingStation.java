@@ -1,7 +1,7 @@
 package uk.ac.ed.inf.powergrab;
 
 /**
- * ChargingStation encapsulates the useful informations of a charging station.
+ * ChargingStation encapsulates the useful information of a charging station.
  * The data includes:
  * <ul>
  * <li>The coins stored in the station
@@ -11,7 +11,7 @@ package uk.ac.ed.inf.powergrab;
  * </ul>
  * <p>
  * It also provides two constants for further checking the type of a charging station,
- * and several functions to update the informations of the station.
+ * and several functions to update the information of the station.
  * 
  * @author s1740055
  */

@@ -47,7 +47,6 @@ public class StatefulDrone extends Drone{
 	 */
 	@Override
 	Feature strategy() {
-		points.add(positionToPoint(position));
 		Direction[] directions = Direction.values();
 		
 		List<ChargingStation> route = greedyAlgorithm(); // Get the access order of light houses.

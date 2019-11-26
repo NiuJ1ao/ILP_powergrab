@@ -36,10 +36,10 @@ public abstract class Drone {
 	Position position;
 	double coins;
 	double power;
-	Random rnd;
+	final Random rnd;
 	private int steps;
 	private PrintWriter writer;
-	List<Point> points = new ArrayList<Point>();
+	private List<Point> points = new ArrayList<Point>();
 	
 	final double ACCESS_RANGE = 0.00025;
 	private final double POWER_CONSUMPTION = 1.25;

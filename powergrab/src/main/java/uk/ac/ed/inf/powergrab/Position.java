@@ -2,11 +2,6 @@ package uk.ac.ed.inf.powergrab;
 
 import java.util.HashMap;
 
-/**
- * 
- * 
- * @author s1740055
- */
 public class Position {
 	
 	public double latitude;

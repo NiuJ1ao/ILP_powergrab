@@ -15,7 +15,7 @@ import com.mapbox.geojson.*;
 
 
 /**
- * App is the main part of this application, like a interface. It contains the informations about stations and the drone.
+ * App is the main part of this application, like a interface. It contains the information about stations and the drone.
  * I used this function directly instead of creating a new class called map. It is because I think App class can represent the map. 
  * @author s1740055
  */
@@ -153,7 +153,7 @@ public class App {
     }
     
     /**
-     * This parses the string and gets informations about stations.
+     * This parses the string and gets information about stations.
      * @param mapSource The JSON data about the map
      */
     private void parseSource(String mapSource) {
