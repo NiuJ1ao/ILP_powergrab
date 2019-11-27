@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 
 import com.mapbox.geojson.*;
@@ -20,9 +23,9 @@ import com.mapbox.geojson.*;
  * @author s1740055
  */
 public class App {
-	protected static List<ChargingStation> stations = new ArrayList<ChargingStation>();
-	private static Drone drone;
-	List<Feature> featuresList = null;
+	private final static List<ChargingStation> stations = new ArrayList<ChargingStation>();
+	private Drone drone;
+	private List<Feature> featuresList = null;
 	
     public static void main(String[] args) throws Exception {
     	// Parse arguments.
@@ -45,10 +48,8 @@ public class App {
      * @param initDronePos				The position where the drone starts.
      * @param seed						The random seed.
      * @param droneType					The type of drone, either stateless or stateful.
-     * @throws IOException 				Throws exception if the file does not exist or network connection fails.
-     * @throws ClassNotFoundException 	If the drone type typed in is neither stateful nor stateless.
      */
-    public App(String day, String month, String year, Position initDronePos, long seed, String droneType) throws IOException, ClassNotFoundException {
+    public App(String day, String month, String year, Position initDronePos, long seed, String droneType) {
     	long startTime = System.currentTimeMillis();
     	
     	// Initiate stations
@@ -59,26 +60,35 @@ public class App {
     	
     	// Initiate drone
     	String txtFileName = String.format("%s-%s-%s-%s.txt", droneType, day, month, year); 
-    	PrintWriter txtWriter = new PrintWriter(txtFileName, "UTF-8");
-    	if (droneType.equals("stateless")) {
-    		drone = new StatelessDrone(initDronePos, seed, txtWriter);
-    	} else if (droneType.equals("stateful")) {
-    		drone = new StatefulDrone(initDronePos, seed, txtWriter);
-    	} else {
-    		txtWriter.close();
-    		throw new ClassNotFoundException("Drone type is not found.");
-    	}
-    	
-    	// Create and write to geojson file.
     	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year);
-    	PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
-    	
-    	// Run the drone.
-    	run(txtWriter, jsonWriter);
+		try {
+			PrintWriter txtWriter = new PrintWriter(txtFileName, "UTF-8");
+			if (droneType.equals("stateless")) {
+	    		drone = new StatelessDrone(initDronePos, seed, txtWriter);
+	    	} else if (droneType.equals("stateful")) {
+	    		drone = new StatefulDrone(initDronePos, seed, txtWriter);
+	    	} else {
+	    		txtWriter.close();
+	    		throw new ClassNotFoundException();
+	    	}
+			
+	    	// Create and write to geojson file.
+	    	PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
+	    	
+	    	// Run the drone
+	    	run(txtWriter, jsonWriter);
+	    	
+		} catch (FileNotFoundException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+			System.exit(1);
+		} catch (ClassNotFoundException e) {
+			System.err.println("Drone Type Error: "+ droneType + " drone is not valid. The type of a drone should be either <stateful> or <stateless>.");
+			System.exit(1);
+		}
     	
     	// Evaluate the performance.
     	long endTime = System.currentTimeMillis();
-    	if (drone.coins/totalCoins < 1 || endTime - startTime>1000) {
+    	if (drone.coins/totalCoins < 1 || endTime - startTime>500) {
     		System.out.println("==== "+droneType+" drone is running in "+day+" "+month+" "+year+" "+"====");
     		System.out.println("Coins ratio: " + drone.coins/totalCoins);
     		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
@@ -123,33 +133,44 @@ public class App {
      * @param year
      * @param month		   Those three are the date of map which is trying to get.
      * @param day
-     * @throws IOException Throws exception if the file does not exist or network connection fails.
      */
-    private void downloadMap(String year, String month, String day) throws IOException  {
+    private void downloadMap(String year, String month, String day) {
     	String mapString = String.format("http://homepages.inf.ed.ac.uk/stg/powergrab/%s/%s/%s/powergrabmap.geojson", 
     										year, month, day);
     	
-    	URL mapUrl = new URL(mapString);
-    	HttpURLConnection conn = (HttpURLConnection) mapUrl.openConnection();
-    	conn.setReadTimeout(10000);
-    	conn.setConnectTimeout(15000);
-    	conn.setRequestMethod("GET");
-    	conn.setDoInput(true);
-    	conn.connect();
-    	
-    	InputStream in = conn.getInputStream();
-    	StringBuilder mapBuilder = new StringBuilder();
-    	
-    	// Parse InputStream to String
-    	int c = 0;
-    	try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
+		try {
+			// Try to connect to the URL.
+			URL mapUrl = new URL(mapString);
+			HttpURLConnection conn = (HttpURLConnection) mapUrl.openConnection();
+	    	conn.setReadTimeout(10000);
+	    	conn.setConnectTimeout(15000);
+	    	conn.setRequestMethod("GET");
+	    	conn.setDoInput(true);
+	    	conn.connect();
+	    	
+	    	// Get the data from website.
+//	    	InputStream in = new FileInputStream("1-1-1-1.geojson");
+	    	InputStream in = conn.getInputStream();
+	    	    	
+	    	// Parse InputStream to String
+	    	int c = 0;
+	    	StringBuilder mapBuilder = new StringBuilder();
+	    	Reader reader = new BufferedReader(new InputStreamReader(in));
     		while ((c = reader.read()) != -1) {
     			mapBuilder.append((char) c);
     		}
-    	}
-    	String mapSource = mapBuilder.toString();
+	    	String mapSource = mapBuilder.toString();
+	    	
+	    	parseSource(mapSource);
+	    	
+		} catch (FileNotFoundException e) {
+			System.err.println("File Not Found: " + mapString + " is not found. Please try another date.");
+			System.exit(1);
+		} catch (IOException e) {
+			System.err.println("Connection Failure: Please check network connection.");
+			System.exit(1);
+		}
     	
-    	parseSource(mapSource);
     }
     
     /**
@@ -172,5 +193,9 @@ public class App {
     		ChargingStation station = new ChargingStation(coins, power, p);
     		stations.add(station);
     	}	
+    }
+    
+    static List<ChargingStation> getStations() {
+    	return stations;
     }
 }

@@ -41,9 +41,10 @@ public abstract class Drone {
 	private PrintWriter writer;
 	private List<Point> points = new ArrayList<Point>();
 	
-	final double ACCESS_RANGE = 0.00025;
-	private final double POWER_CONSUMPTION = 1.25;
-	private final double MIN_PAYLOAD = 0.0;
+	private static final double ACCESS_RANGE = 0.00025;
+	private static final double POWER_CONSUMPTION = 1.25;
+	private static final double MIN_PAYLOAD = 0.0;
+	private static final int MAX_STEPS = 250;
 	
 	/**
 	 * Constructor of Drone. It initialises the drone.
@@ -67,11 +68,11 @@ public abstract class Drone {
 	 * @param station	The pre-calculated station which should be connected by the drone after move. 
 	 * 					If it is null, it will be calculated again in this function.
 	 */
-	void move(Direction direction, ChargingStation station) {
+	void move(Direction direction , ChargingStation station) {
 		Position p = position.nextPosition(direction);
 		Position prev = position;		
 		position = p;
-		power = power - POWER_CONSUMPTION;
+		power -= POWER_CONSUMPTION;
 		steps++;
 		
 		if (station == null) {
@@ -83,7 +84,7 @@ public abstract class Drone {
 		}
 		points.add(positionToPoint(position));
 		writer.println(prev.latitude +","+ prev.longitude +","+ direction +","+ position.latitude +","+ position.longitude +","+ coins +","+ power);
-		System.out.println(steps+" - coins: "+coins+", power: "+power);
+//		System.out.println(steps+" - coins: "+coins+", power: "+power);
 	}
 	
 	/**
@@ -93,21 +94,18 @@ public abstract class Drone {
 	 */
 	ChargingStation findNearestStationInRange(Position p) {
 		double distance = 0;
-		List<ChargingStation> stations = App.stations;
+		List<ChargingStation> stations = App.getStations();
 		ChargingStation nearestStation = null;
 		double minDistance = Double.MAX_VALUE;
 		
 		for (ChargingStation station : stations) {
-			double deltaX = Math.abs(station.position.longitude - p.longitude);
-			double deltaY = Math.abs(station.position.latitude - p.latitude);
-			if (deltaX <= ACCESS_RANGE && deltaY <= ACCESS_RANGE) {
-				distance = Math.sqrt(Math.pow(deltaY, 2) + Math.pow(deltaX, 2));
-				if (distance <= ACCESS_RANGE && distance < minDistance) {
-					minDistance = distance;
-					nearestStation = station;
-				}
+			distance = station.distanceTo(p);
+			if (distance <= ACCESS_RANGE && distance < minDistance) {
+				minDistance = distance;
+				nearestStation = station;
 			}
 		}
+		
 		return nearestStation;
 	}
 	
@@ -152,7 +150,7 @@ public abstract class Drone {
 	 * @return A boolean value determines whether the game is over or not.
 	 */
 	boolean isGameOver() {
-		return power < POWER_CONSUMPTION || steps == 250;
+		return power < POWER_CONSUMPTION || steps == MAX_STEPS;
 	}
 	
 	/**
@@ -160,7 +158,7 @@ public abstract class Drone {
 	 * @param position The position need to be parsed.
 	 * @return 		   The relevant Point data.
 	 */
-	Point positionToPoint(Position position) {
+	private Point positionToPoint(Position position) {
 		return Point.fromLngLat(position.longitude, position.latitude);
 	}
 	

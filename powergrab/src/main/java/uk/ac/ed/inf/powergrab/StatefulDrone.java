@@ -81,16 +81,14 @@ public class StatefulDrone extends Drone{
 				break;
 			}		
 			// Use A* to find a path to station.
-			path = aStar(position, station, 0);	
-			
+			path = aStar(position, station, 0);
 			// Follow the path
-			while(path != null && !isGameOver() && !path.isEmpty()) {
+			while(!isGameOver() && !path.isEmpty()) {
 				Direction d = path.pop();
 				move(d, null);
 			}		
 		}
 	}
-	
 	
 	/*******************************
 	 **  A Star Search Algorithm  **
@@ -109,7 +107,7 @@ public class StatefulDrone extends Drone{
 		TreeMap<Double, Position> fScores = new TreeMap<Double, Position>();
 		Map<Position, Position> cameFrom = new HashMap<Position, Position>();
 		Set<Position> visited = new HashSet<Position>();
-		int step = 0;
+		int iterations = 0;
 		int threshold = 1250; // Experimental result
 		final double stepCost = 0.0003;
 		
@@ -122,14 +120,14 @@ public class StatefulDrone extends Drone{
 			// Find the minimum f score and set current to relevant position;
 			Entry<Double, Position> minPair = fScores.pollFirstEntry();
 			current = minPair.getValue();
-
-			if (step > threshold && attempt < 3) { 								// A* time out
-				Stack<Direction> after = aStar(current, station, attempt+1);	// try again from current position recursively
-				Stack<Direction> before = reconstruct_path(cameFrom, current);  // construct a path from start position to current position
-				after.addAll(before);											// add them together and return.
+			
+			if (iterations > threshold && attempt < 3) { 	// A* time out
+				Stack<Direction> after = aStar(current, station, attempt+1);		// try again from current position recursively
+				Stack<Direction> before = reconstructPath(cameFrom, current);   	// construct a path from start position to current position
+				after.addAll(before);												// add them together and return.
 				return after;
-			} else if (step > threshold) { 										// Try too many times, GIVE UP.
-				return reconstruct_path(cameFrom, current);
+			} else if (iterations > threshold) { 									// Try too many times, GIVE UP.
+				return reconstructPath(cameFrom, current);
 			}
 			
 			// Check neighbours
@@ -143,13 +141,23 @@ public class StatefulDrone extends Drone{
 					nearestS = findNearestStationInRange(neighbour);
 					if (nearestS != null && nearestS.equals(station)) {
 						cameFrom.put(neighbour, current);
-						return reconstruct_path(cameFrom, neighbour);
+						return reconstructPath(cameFrom, neighbour);
 					}
 					
-					if (nearestS == null || nearestS.type == ChargingStation.LIGHTHOUSE) { // Check if that direction is dangerous.
+					if (nearestS == null || (nearestS.coins >= 0 && nearestS.power >=0)) { // Check if that direction is dangerous.
 						double gScore = gScores.get(current) + stepCost;
 						double fScore = gScore + station.distanceTo(neighbour);
 						if (!checkVisited(neighbour, visited)) { 						   // Check if the neighbour is visited.
+							gScores.put(neighbour, gScore);
+							fScores.put(fScore, neighbour);
+							cameFrom.put(neighbour, current);
+						}
+					} 
+					// The following code takes bad position into account when A* tries more than one time.
+					else if (nearestS.type == ChargingStation.SKULL && attempt > 0 && (nearestS.coins + station.coins > 0 || coins == 0)) {
+						double gScore = gScores.get(current) + stepCost - stepCost*(nearestS.coins/station.coins-3);
+						double fScore = gScore + station.distanceTo(neighbour);
+						if (!checkVisited(neighbour, visited)) {
 							gScores.put(neighbour, gScore);
 							fScores.put(fScore, neighbour);
 							cameFrom.put(neighbour, current);
@@ -158,9 +166,9 @@ public class StatefulDrone extends Drone{
 				}
 			}	
 			visited.add(current);
-			step++;
+			iterations++;
 		}
-		return null;
+		return aStar(current, station, 1);
 	}
 	
 	/**
@@ -185,7 +193,7 @@ public class StatefulDrone extends Drone{
 	 * @param current  The position where A* finished.
 	 * @return		   A stack of directions for the drone to follow.
 	 */
-	private Stack<Direction> reconstruct_path(Map<Position, Position> cameFrom, Position current) {
+	private Stack<Direction> reconstructPath(Map<Position, Position> cameFrom, Position current) {
 		Stack<Direction> path = new Stack<Direction>();
 		Position prev = null;
 		Direction d;
@@ -214,7 +222,7 @@ public class StatefulDrone extends Drone{
 	 */
 	private List<ChargingStation> greedyAlgorithm() {
 		final List<ChargingStation> lightHouses = new ArrayList<ChargingStation>();
-		App.stations.forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
+		App.getStations().forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
 		List<ChargingStation> route = new ArrayList<ChargingStation>();
 		double routeLength = 0;
 		
