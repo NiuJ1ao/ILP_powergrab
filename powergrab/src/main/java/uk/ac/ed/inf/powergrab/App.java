@@ -23,9 +23,10 @@ import com.mapbox.geojson.*;
  * @author s1740055
  */
 public class App {
-	private final static List<ChargingStation> stations = new ArrayList<ChargingStation>();
+	private final List<ChargingStation> stations = new ArrayList<ChargingStation>();
 	private Drone drone;
-	private List<Feature> featuresList = null;
+	private List<Feature> featuresList;
+	private PrintWriter txtWriter;
 	
     public static void main(String[] args) throws Exception {
     	// Parse arguments.
@@ -62,11 +63,11 @@ public class App {
     	String txtFileName = String.format("%s-%s-%s-%s.txt", droneType, day, month, year); 
     	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year);
 		try {
-			PrintWriter txtWriter = new PrintWriter(txtFileName, "UTF-8");
+			txtWriter = new PrintWriter(txtFileName, "UTF-8");
 			if (droneType.equals("stateless")) {
-	    		drone = new StatelessDrone(initDronePos, seed, txtWriter);
+	    		drone = new StatelessDrone(initDronePos, seed, this);
 	    	} else if (droneType.equals("stateful")) {
-	    		drone = new StatefulDrone(initDronePos, seed, txtWriter);
+	    		drone = new StatefulDrone(initDronePos, seed, this);
 	    	} else {
 	    		txtWriter.close();
 	    		throw new ClassNotFoundException();
@@ -194,8 +195,12 @@ public class App {
     		stations.add(station);
     	}	
     }
-    
-    static List<ChargingStation> getStations() {
+
+    List<ChargingStation> getStations() {
     	return stations;
+    }
+    
+    PrintWriter getWriter() {
+    	return txtWriter;
     }
 }

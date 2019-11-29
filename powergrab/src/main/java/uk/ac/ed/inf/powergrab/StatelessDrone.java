@@ -1,7 +1,6 @@
 package uk.ac.ed.inf.powergrab;
 
 import java.util.List;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import com.mapbox.geojson.Feature;
 
@@ -12,8 +11,8 @@ import com.mapbox.geojson.Feature;
  */
 public class StatelessDrone extends Drone{
 
-	StatelessDrone(Position p, long seed, PrintWriter writer) {
-		super(p, seed, writer);
+	StatelessDrone(Position p, long seed, App app) {
+		super(p, seed, app);
 	}
 	
 	/**

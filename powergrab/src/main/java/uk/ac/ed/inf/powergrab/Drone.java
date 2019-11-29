@@ -1,6 +1,5 @@
 package uk.ac.ed.inf.powergrab;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -38,8 +37,8 @@ public abstract class Drone {
 	double power;
 	final Random rnd;
 	private int steps;
-	private PrintWriter writer;
 	private List<Point> points = new ArrayList<Point>();
+	App app;
 	
 	private static final double ACCESS_RANGE = 0.00025;
 	private static final double POWER_CONSUMPTION = 1.25;
@@ -52,13 +51,13 @@ public abstract class Drone {
 	 * @param seed	   The random seed for random moves.
 	 * @param writer   The writer to record the status of the drone in text file.
 	 */
-	Drone(Position position, long seed, PrintWriter writer) {
+	Drone(Position position, long seed, App app) {
 		this.position = position;
 		this.coins = 0;
 		this.power = 250;
 		this.rnd = new Random(seed);
 		this.steps = 0;
-		this.writer = writer;
+		this.app = app;
 		points.add(positionToPoint(position));
 	}
 	
@@ -83,7 +82,7 @@ public abstract class Drone {
 			station.transferPower(this);
 		}
 		points.add(positionToPoint(position));
-		writer.println(prev.latitude +","+ prev.longitude +","+ direction +","+ position.latitude +","+ position.longitude +","+ coins +","+ power);
+		app.getWriter().println(prev.latitude +","+ prev.longitude +","+ direction +","+ position.latitude +","+ position.longitude +","+ coins +","+ power);
 //		System.out.println(steps+" - coins: "+coins+", power: "+power);
 	}
 	
@@ -94,7 +93,7 @@ public abstract class Drone {
 	 */
 	ChargingStation findNearestStationInRange(Position p) {
 		double distance = 0;
-		List<ChargingStation> stations = App.getStations();
+		List<ChargingStation> stations = app.getStations();
 		ChargingStation nearestStation = null;
 		double minDistance = Double.MAX_VALUE;
 		

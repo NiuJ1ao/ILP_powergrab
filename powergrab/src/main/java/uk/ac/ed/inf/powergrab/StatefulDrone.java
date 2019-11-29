@@ -1,6 +1,5 @@
 package uk.ac.ed.inf.powergrab;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -28,8 +27,8 @@ public class StatefulDrone extends Drone{
 	 * @param seed
 	 * @param writer
 	 */
-	StatefulDrone(Position p, long seed, PrintWriter writer) {
-		super(p, seed, writer);
+	StatefulDrone(Position p, long seed, App app) {
+		super(p, seed, app);
 		
 		// Create a HashMap for A* to retrieve the direction between two points.
 		Direction[] directions = Direction.values();
@@ -123,7 +122,7 @@ public class StatefulDrone extends Drone{
 			Entry<Double, Position> minPair = fScores.pollFirstEntry();
 			current = minPair.getValue();
 			
-			if (iterations > threshold && attempt < 3) { 	// A* time out
+			if (iterations > threshold && attempt < 3) { 							// A* time out
 				Stack<Direction> after = aStar(current, station, attempt+1);		// try again from current position recursively
 				Stack<Direction> before = reconstructPath(cameFrom, current);   	// construct a path from start position to current position
 				after.addAll(before);												// add them together and return.
@@ -224,7 +223,7 @@ public class StatefulDrone extends Drone{
 	 */
 	private List<ChargingStation> greedyAlgorithm() {
 		final List<ChargingStation> lightHouses = new ArrayList<ChargingStation>();
-		App.getStations().forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
+		app.getStations().forEach(s -> {if (s.type == ChargingStation.LIGHTHOUSE) lightHouses.add(s);});
 		List<ChargingStation> route = new ArrayList<ChargingStation>();
 		double routeLength = 0;
 		
