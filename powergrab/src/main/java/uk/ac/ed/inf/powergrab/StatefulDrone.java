@@ -50,7 +50,9 @@ public class StatefulDrone extends Drone{
 		Direction[] directions = Direction.values();
 		
 		List<ChargingStation> route = greedyAlgorithm(); // Get the access order of light houses.
-		followRoute(route); 						 	 // Follow the route by using A*
+		if (route != null) {
+			followRoute(route); 						 // Follow the route by using A*
+		}
 		
 		// Start random move until game over.
 		while (!isGameOver()) {
@@ -168,7 +170,7 @@ public class StatefulDrone extends Drone{
 			visited.add(current);
 			iterations++;
 		}
-		return aStar(current, station, 1);
+		return aStar(current, station, attempt+1);
 	}
 	
 	/**
@@ -246,7 +248,7 @@ public class StatefulDrone extends Drone{
 			lightHouses.remove(closestStation);
 		}
 		
-		return twoOptOptimization(route, routeLength);
+		return twoOptOptimisation(route, routeLength);
 	}
 	
 	/**
@@ -258,7 +260,7 @@ public class StatefulDrone extends Drone{
 	 * 
 	 * @see 			  <a href="https://en.wikipedia.org/wiki/2-opt">2-opt</a>
 	 */
-	private List<ChargingStation> twoOptOptimization(List<ChargingStation> route, double routeLength) {
+	private List<ChargingStation> twoOptOptimisation(List<ChargingStation> route, double routeLength) {
 		double currentPerformance = 0;
 		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
 		int numOfStations = route.size();

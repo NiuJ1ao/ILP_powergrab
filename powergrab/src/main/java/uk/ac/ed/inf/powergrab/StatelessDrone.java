@@ -36,15 +36,14 @@ public class StatelessDrone extends Drone{
 			for (Direction direction : directions) {
 				nextP = position.nextPosition(direction);
 				if (nextP.inPlayArea()) {		
-					nearestStation = findNearestStationInRange(nextP);	// Find the closest station to the position.
-					if (nearestStation != null) {						// If a station can be connected
-						if (nearestStation.coins > 0) {					// and it is a light house which was not connected before,
-							move(direction, nearestStation);			// move to that direction and retrieve the coins and power.
+					nearestStation = findNearestStationInRange(nextP);	      // Find the closest station to the position.
+					if (nearestStation != null && nearestStation.coins > 0) { // and it is a light house which was not connected before,
+							move(direction, nearestStation);			      // move to that direction and retrieve the coins and power.
 							isMoved = true;
 							break;
-						}
-					} else {											// If there is no station can be connected, the direction is safe.
-						validDirection.add(direction);					// Add it to valid directions for random move.
+					} 
+					if (nearestStation == null || nearestStation.type == ChargingStation.LIGHTHOUSE) { // If there is no station can be connected, the direction is safe.
+						validDirection.add(direction);					 							   // Add it to valid directions for random move.
 					}
 				}
 			}
