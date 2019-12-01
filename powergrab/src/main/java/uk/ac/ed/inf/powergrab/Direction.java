@@ -1,6 +1,6 @@
 package uk.ac.ed.inf.powergrab;
 
-public enum Direction {
+enum Direction {
 	E,
 	ENE,
 	NE,

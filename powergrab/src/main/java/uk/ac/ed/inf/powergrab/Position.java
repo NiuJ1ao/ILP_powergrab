@@ -2,7 +2,7 @@ package uk.ac.ed.inf.powergrab;
 
 import java.util.HashMap;
 
-public class Position {
+class Position {
 	
 	public double latitude;
 	public double longitude;
@@ -23,7 +23,7 @@ public class Position {
 		}
 	}
 	
-	public Position (double latitude, double longitude) {
+	Position (double latitude, double longitude) {
 		this.latitude = latitude;
 		this.longitude = longitude;
 	}
@@ -33,7 +33,7 @@ public class Position {
 	 * @param direction The chosen direction from 16 directions
 	 * @return The next position
 	 */
-	public Position nextPosition(Direction direction) {
+	Position nextPosition(Direction direction) {
 		Position move = movement.get(direction);
 		Position nextPos = new Position(this.latitude+move.latitude, this.longitude+move.longitude);
 		return nextPos;				
@@ -43,7 +43,7 @@ public class Position {
 	 * This function checks if the current location is in play area.
 	 * @return A boolean value to determine whether current location is in play area.
 	 */
-	public boolean inPlayArea() {
+	boolean inPlayArea() {
 		double MINLATITUDE = 55.942617;
 		double MAXLATITUDE = 55.946233;
 		double MAXLONGITUDE = -3.184319;
