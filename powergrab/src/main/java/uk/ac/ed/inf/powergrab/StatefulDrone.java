@@ -155,7 +155,7 @@ public class StatefulDrone extends Drone{
 						}
 					} 
 					// The following code takes bad position into account when A* tries more than one time.
-					else if (nearestS.type == ChargingStation.SKULL && attempt > 0 && (nearestS.coins + station.coins > 0 || coins == 0)) {
+					else if (attempt > 0 && nearestS.type == ChargingStation.SKULL && (nearestS.coins + station.coins > 0 || coins == 0)) {
 						double gScore = gScores.get(current) + stepCost - stepCost*(nearestS.coins/station.coins-3);
 						double fScore = gScore + station.distanceTo(neighbour);
 						if (!checkVisited(neighbour, visited)) {
