@@ -12,7 +12,12 @@ import java.util.TreeMap;
 import com.mapbox.geojson.Feature;
 
 /**
- * 
+ * The StatefulDrone class implements the strategy of a stateful drone. A stateful drone
+ * is designed to against experts.  The drone flies more purposefully and tries to collect
+ * as many coins as possible. Several algorithms are implemented in this class for different
+ * purposes. The greedy search algorithm and 2-opt optimisation algorithm are combined to 
+ * solve the access order oflight houses. A* search algorithm is deployed to find a path 
+ * from current position of the drone to a charging station.
  * 
  * @author s1740055
  */
@@ -23,9 +28,6 @@ public class StatefulDrone extends Drone{
 	/**
 	 * Constructor of stateful drone. It initialises stateful drone as normal drone.
 	 * But this creates a HashMap which contains angles and related direction and will be used later.
-	 * @param p
-	 * @param seed
-	 * @param writer
 	 */
 	StatefulDrone(Position p, long seed, App app) {
 		super(p, seed, app);
@@ -59,8 +61,8 @@ public class StatefulDrone extends Drone{
 			Direction direction = directions[idx];
 			Position nextP = position.nextPosition(direction);
 			if (nextP.inPlayArea()) {	
-				ChargingStation station = findNearestStationInRange(nextP);			 // Avoid skulls.
-				if (station == null || station.type == ChargingStation.LIGHTHOUSE) { 
+				ChargingStation station = findNearestStationInRange(nextP);			 
+				if (station == null || station.type == ChargingStation.LIGHTHOUSE) { // Avoid skulls
 					move(direction, station);
 				}
 			}
@@ -71,8 +73,9 @@ public class StatefulDrone extends Drone{
 	
 	/**
 	 * It follows the route returned by greedy and 2-opt algorithm.
-	 * The drone follows the path calculated by A* from current position to the station iteratively
-	 * @param route The route to follow.
+	 * The drone follows the path calculated by A* from current position to charging stations iteratively.
+	 * 
+	 * @param route A list of charging stations for the drone to visit
 	 */
 	private void followRoute(List<ChargingStation> route) {
 		Stack<Direction> path;
@@ -96,10 +99,11 @@ public class StatefulDrone extends Drone{
 	 *******************************/
 	/**
 	 * This function performs A* algorithm from current location to the target station.
-	 * @param drone   The position of the drone.
+	 * 
+	 * @param drone   The position of the drone
 	 * @param station The target station
-	 * @param attempt A count about how many times the A* is performed for this station.
-	 * @return		  It returns a Stack of directions for the drone to follow.
+	 * @param attempt A counter about how many times the A* is performed for this station
+	 * @return		  It returns a Stack of directions which indicates the direction of each movement
 	 * 
 	 * @see 		  <a href="https://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>
 	 */
@@ -154,7 +158,7 @@ public class StatefulDrone extends Drone{
 							cameFrom.put(neighbour, current);
 						}
 					} 
-					// The following code takes bad position into account when A* tries more than one time.
+					// The following code takes skulls into account when A* tries more than one time.
 					else if (attempt > 0 && nearestS.type == ChargingStation.SKULL && (nearestS.coins + station.coins > 0 || coins == 0)) {
 						double gScore = gScores.get(current) + stepCost - stepCost*(nearestS.coins/station.coins-3);
 						double fScore = gScore + station.distanceTo(neighbour);
@@ -188,7 +192,7 @@ public class StatefulDrone extends Drone{
 	}
 	
 	/**
-	 * A helper function of A*, it backtracks the cameFrom map from current position to the start position, 
+	 * A helper function of A*, it backtracks the cameFrom HashMap from current position to the start position, 
 	 * and transfers the angle between positions to direction for the drone to follow.
 	 * @param cameFrom A Map<Postion, Position> data, each pair is the position and its parent.
 	 * @param current  The position where A* finished.
@@ -204,7 +208,7 @@ public class StatefulDrone extends Drone{
 		while (cameFrom.containsKey(current)) {
 			prev = cameFrom.get(current);														   // backtrack the cameFrom map.
 			radian = Math.atan2(current.latitude-prev.latitude, current.longitude-prev.longitude); // Calculate the radian between two positions.
-			d = radianToDirection.get((int) Math.round(radian/dividor));						   // Get related direction of the radian.
+			d = radianToDirection.get((int) Math.round(radian/dividor));						   // Get relative direction of the radian.
 			path.add(d);
 			current = prev;
 		}
@@ -219,6 +223,7 @@ public class StatefulDrone extends Drone{
 	 * This function performs greedy algorithm for all light houses initially 
 	 * to get a greedy route which determines the order of stations the drone flies to.
 	 * Then the route is optimised by 2-opt algorithm.
+	 * 
 	 * @return The locally optimised route tells the access order of stations.
 	 */
 	private List<ChargingStation> greedyAlgorithm() {
@@ -227,6 +232,7 @@ public class StatefulDrone extends Drone{
 		List<ChargingStation> route = new ArrayList<ChargingStation>();
 		double routeLength = 0;
 		
+		// Perform the greedy search algorithm, heuristic function is nearest unvisited neighbours.
 		Position current = position;
 		while (!lightHouses.isEmpty()) {
 			// find the nearest lighthouse from current;
@@ -253,6 +259,7 @@ public class StatefulDrone extends Drone{
 	/**
 	 * This function calculates more optimal route from the greedy one 
 	 * by comparing every possible valid combination of the swapping mechanism.
+	 * 
 	 * @param route       The greedy route
 	 * @param routeLength The length of greedy route.
 	 * @return			  The optimised route.
@@ -291,14 +298,8 @@ public class StatefulDrone extends Drone{
 	}
 	
 	/**
-	 * A helper function for 2-opt. This uses a swap mechanism to get a new route.
-	 * The pseudocode is shown below,
-	 * 2optSwap(route, a, b) {
-     *   1. take route[0] to route[a-1] and add them in order to new_route
-     *   2. take route[a] to route[b] and add them in reverse order to new_route
-     *   3. take route[b+1] to end and add them in order to new_route
-     *   return new_route;
-   	 * }
+	 * A helper function for 2-opt. This uses a swap mechanism to create a new route.
+	 * 
 	 * @param current The current route
 	 * @param a		  The start index to swap
 	 * @param b		  The end index to swap
@@ -307,12 +308,15 @@ public class StatefulDrone extends Drone{
 	private List<ChargingStation> twoOptSwap(List<ChargingStation> current, int a, int b) {
 		List<ChargingStation> newRoute = new ArrayList<ChargingStation>();
 		
+		// take route[0] to route[a-1] and add them in order to new_route
 		for (int i=0; i<a; i++) {
 			newRoute.add(current.get(i));
 		}
+		// take route[a] to route[b] and add them in reverse order to new_route
 		for (int i=b; i>=a; i--) {
 			newRoute.add(current.get(i));
 		}
+		// take route[b+1] to end and add them in order to new_route
 		for (int i=b+1; i<current.size(); i++) {
 			newRoute.add(current.get(i));
 		}

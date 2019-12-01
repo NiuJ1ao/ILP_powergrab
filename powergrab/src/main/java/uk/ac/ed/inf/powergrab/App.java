@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.net.URL;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,8 +17,16 @@ import com.mapbox.geojson.*;
 
 
 /**
- * App is the main part of this application, like a interface. It contains the information about stations and the drone.
- * I used this function directly instead of creating a new class called map. It is because I think App class can represent the map. 
+ * The App class is the main part of the application. The App has the only public method, 
+ * the constructor of App. All processes of this application are handled in the constructor. 
+ * Charging stations and a drone are encapsulated in a App instance. The App initiates charging
+ * stations by downloading GeoJSON file online according to the first three arguments 
+ * which specify which date the map is. Then it initiates a drone by last three arguments,
+ * which specify the initial position where the drone starts, 
+ * a random seed for generating random movement of the drone and the type of this drone, 
+ * and App executes the drone. After the execution, a text file and aGeoJSON file are created and 
+ * appended with status changes of the drone and a map information for visualising the path of the drone respectively.
+ * 
  * @author s1740055
  */
 public class App {
@@ -42,7 +49,11 @@ public class App {
     }
     
     /**
-     * The constructor of App class. It initiates the game and also runs the drone.
+     * Constructs the App with the specific map and a drone with the specific state information. Because the application
+     * does not have any APIs, all processes are handled in this constructor and the constructor returns a App instance 
+     * after the drone finishes. The processes includes downloading the specific map, initiating and executing the specific
+     * type of drone.
+     * 
      * @param day
      * @param month						The date of map.
      * @param year
@@ -98,6 +109,7 @@ public class App {
     
     /**
      * For evaluation performance, check how many coins the drone got.
+     * 
      * @return The total number of coins in the map.
      */
     private double getTotalCoins() {
@@ -111,9 +123,11 @@ public class App {
     }
     
     /**
-     * This function runs the drone and adds the feature(movements) returned by the drone to GeoJSON file.
-     * @param txtWriter   It is for recording the status changes of the drone.
-     * @param jsonWriter  It is for creating GeoJSON file after execution.
+     * Executes the drone and appends the LineString returned by drone to the feature collection of the map. 
+     * Then writes the feature collection to a GeoJSON file
+     * 
+     * @param txtWriter   The PrintWriter for the drone to store its state changes
+     * @param jsonWriter  The PrintWriter for the app to generate a GeoJSON file
      */
     private void run(PrintWriter txtWriter, PrintWriter jsonWriter) {
     	// Run the drone.
@@ -130,7 +144,8 @@ public class App {
     }
     
     /**
-     * This function download the map according to the date.
+     * Requests a map from the specific date online and converts the InputStream from the website into a JSON String.
+     * 
      * @param year
      * @param month		   Those three are the date of map which is trying to get.
      * @param day
@@ -150,7 +165,6 @@ public class App {
 	    	conn.connect();
 	    	
 	    	// Get the data from website.
-//	    	InputStream in = new FileInputStream("1-1-1-1.geojson");
 	    	InputStream in = conn.getInputStream();
 	    	    	
 	    	// Parse InputStream to String
@@ -175,7 +189,8 @@ public class App {
     }
     
     /**
-     * This parses the string and gets information about stations.
+     * Retrieves information about charging stations from specific JSON string and stores each charging station into a ArrayList.
+     * 
      * @param mapSource The JSON data about the map
      */
     private void parseSource(String mapSource) {
@@ -195,7 +210,7 @@ public class App {
     		stations.add(station);
     	}	
     }
-
+    
     List<ChargingStation> getStations() {
     	return stations;
     }

@@ -5,7 +5,12 @@ import java.util.ArrayList;
 import com.mapbox.geojson.Feature;
 
 /**
- * 
+ * The StatelessDrone class implements the strategy of a stateless drone. A stateless drone is a 
+ * memoryless drone and designed to against amateurs. Its decision of the next move to make can 
+ * only be based on information about the charging stations which are within range of the sixteen 
+ * positions where the drone can be after one move from its current position, and guided by the 
+ * general gameplay of tries to move towards charging stations with positive value, while avoiding 
+ * charging stations with negative value if possible.
  * 
  * @author s1740055
  */
@@ -16,7 +21,7 @@ public class StatelessDrone extends Drone{
 	}
 	
 	/**
-	 * For the stateless drone, the strategy should perform random move and avoid dangerous stations.
+	 * For the stateless drone, the strategy should perform random movement and avoid dangerous stations.
 	 */
 	@Override
 	Feature strategy() {

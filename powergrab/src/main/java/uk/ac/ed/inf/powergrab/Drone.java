@@ -10,24 +10,25 @@ import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 
 /**
- * Drone is the abstract class for both stateful and stateless drone. 
- * A drone object encapsulates the state information of the drone. This 
- * state information includes:
+ * The Drone class is a abstract base class. A Drone instance represents a drone with its status. 
+ * The state information for a drone includes:  
  * <ul>
- * <li>The position of the drone
- * <li>The coins and remaining power in the drone.
- * <li>The random seed for the random move of the drone.
- * <li>A file writer to record status changes of the drone.
- * <li>A array of points records the location after each movement. 
- * 	   This is returned to generate GeoJSON file.
- * There are some constants as well:
- * <li>The access range determines the distance about the drone can connect to a station.
- * <li>The power consumption is how much power is reduced for each movement.
- * <li>The minimum payload range is the lower boundary of power and coins. This improves readability.
+ * <li>the position of the drone 
+ * <li>the number of coins in the drone 
+ * <li>the power stored in the drone 
+ * <li>the initial seed for random move 
+ * <li>the step counter counts how many steps the drone has made
+ * <li>a list of Points tracks the path of the drone
+ * <li>the instance of App that the drone is in 
  * </ul>
- * <p>
- * This class also provides some helper functions for both stateful and stateless drone to implement there strategies.
- * 
+ * Also, some constants in the Drone class represents some limitations to the drone:
+ * <ul>
+ * <li>the maximum steps for a drone is 250 
+ * <li>the power consumption of each step is 1.25 
+ * <li>the access range of charging stations is 0.00025
+ * <li>the minimum payload of the drone is 0
+ * </ul>
+
  * @author s1740055
  */
 public abstract class Drone {
@@ -46,10 +47,13 @@ public abstract class Drone {
 	private static final int MAX_STEPS = 250;
 	
 	/**
-	 * Constructor of Drone. It initialises the drone.
-	 * @param position The position where the drone starts.
-	 * @param seed	   The random seed for random moves.
-	 * @param writer   The writer to record the status of the drone in text file.
+	 * Constructs a drone at specific position. The power of the drone is initialised to 250. 
+	 * The number of coins in the drone and the step are 0 initially. The initial position 
+	 * is also added in the list of Points
+	 * 
+	 * @param position the position where the drone starts
+	 * @param seed	   the initial seed
+	 * @param writer   the instance of App that the drone is in
 	 */
 	Drone(Position position, long seed, App app) {
 		this.position = position;
@@ -62,7 +66,13 @@ public abstract class Drone {
 	}
 	
 	/**
-	 * This function moves the drone by given direction. It also transfers coins and power when the drone can connect to any station.
+	 * Moves the drone to the position at specific direction and update its status. The power is reduced by 1.25 
+	 * and the step counter increments. If the nearest charging station in the access range is not pre-calculated 
+	 * or not found, this method will try to find the closest charging station in the range again after every 
+	 * movement and send transformation requests to the station if a station is found. This check pre-calculation
+	 * feature is designed for stateless drone in order to avoid duplicate computation. Finally, new position is 
+	 * added to the list of points and new status of the drone is written to text file by the print writer.
+	 * 
 	 * @param direction The direction which the drone should fly to.
 	 * @param station	The pre-calculated station which should be connected by the drone after move. 
 	 * 					If it is null, it will be calculated again in this function.
@@ -83,11 +93,12 @@ public abstract class Drone {
 		}
 		points.add(positionToPoint(position));
 		app.getWriter().println(prev.latitude +","+ prev.longitude +","+ direction +","+ position.latitude +","+ position.longitude +","+ coins +","+ power);
-//		System.out.println(steps+" - coins: "+coins+", power: "+power);
 	}
 	
 	/**
-	 * Find out which station can be connected from given position.
+	 * This method implements Euclidean distance from every charging stations in the App 
+	 * to the specific position.
+	 * 
 	 * @param p The position for calculation.
 	 * @return  The station can be connected or null.
 	 */
@@ -153,7 +164,7 @@ public abstract class Drone {
 	}
 	
 	/**
-	 * This function parses Position to Point.
+	 * This function converts Position to Point.
 	 * @param position The position need to be parsed.
 	 * @return 		   The relevant Point data.
 	 */
@@ -162,7 +173,7 @@ public abstract class Drone {
 	}
 	
 	/**
-	 * This changes the array of Points to a LineString
+	 * This converts the array of Points to a LineString
 	 * @return The LineString represents the movements of the drone.
 	 */
 	Feature getLineString() {

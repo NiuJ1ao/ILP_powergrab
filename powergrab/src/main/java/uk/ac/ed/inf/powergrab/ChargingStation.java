@@ -1,18 +1,15 @@
 package uk.ac.ed.inf.powergrab;
 
 /**
- * ChargingStation encapsulates the useful information of a charging station.
- * The data includes:
- * <ul>
- * <li>The coins stored in the station
- * <li>The power stored in the station
- * <li>The position of the station.
- * <li>The type of drone.
- * </ul>
- * <p>
- * It also provides two constants for further checking the type of a charging station,
- * and several functions to update the information of the station.
- * 
+ * The ChargingStation class represents charging stations. A ChargingStation instance encapsulates
+ *  state information about a charging station. These information includes: 
+ *  <ul>
+ *  <li> the number of coins/debts in the station> the power stored in the station
+ *  <li> the position of the station
+ *  <li> the type of the station
+ *  </ul>
+ *  Moreover, two static Boolean constants, LIGHTHOUSE and SKULL, indicates two types of charging station.
+ *  
  * @author s1740055
  */
 public class ChargingStation { 
@@ -25,10 +22,11 @@ public class ChargingStation {
 	static final boolean SKULL = false;
 	
 	/**
-	 * The constructor of charging station.
-	 * @param coins
-	 * @param power
-	 * @param position
+	 * Constructs a new charging station according to the specific data
+	 * 
+	 * @param coins      the number of coins/debts stored in the station
+	 * @param power		 the power stored in the station
+	 * @param position   the position of the station
 	 */
 	ChargingStation(double coins, double power, Position position) {
 		this.coins = coins;
@@ -38,7 +36,9 @@ public class ChargingStation {
 	}
 	
 	/**
-	 * This function coins transformation request to the drone and update the coins of station by how many the drone takes.
+	 * Transfers coins/debts to the specific drone and updates the number of coins 
+	 * in the charging station by how many coins the drone takes.
+	 * 
 	 * @param drone The drone which is connected to the station.
 	 */
 	void transferCoins(Drone drone) {
@@ -47,7 +47,9 @@ public class ChargingStation {
 	}
 	
 	/**
-	 * This function sends power transformation request to the drone and update the power of station by how much the drone takes.
+	 * Transfers power to the specific drone and updates the quantity of power in 
+	 * the charging station by how much power the drone takes.
+	 * 
 	 * @param drone The drone which is connected to the station.
 	 */
 	void transferPower(Drone drone) {
@@ -56,8 +58,8 @@ public class ChargingStation {
 	}
 	
 	/**
-	 * This calculates the Euclidean distance from this station to the given position.
-	 * @param p The position of destination.
+	 * Computes the Euclidean distance from the charging station to the specific position.
+	 * @param p The destination position for computing distance.
 	 * @return  The distance from current station to the position.
 	 */
 	double distanceTo(Position p) {
