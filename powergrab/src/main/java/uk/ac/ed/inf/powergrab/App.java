@@ -29,13 +29,14 @@ import com.mapbox.geojson.*;
  * 
  * @author s1740055
  */
-public class App {
+class App {
 	private final List<ChargingStation> stations = new ArrayList<ChargingStation>();
 	private Drone drone;
 	private List<Feature> featuresList;
 	private PrintWriter txtWriter;
+	private PrintWriter jsonWriter;
 	
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {  	
     	// Parse arguments.
     	String day = args[0];
     	String month = args[1];
@@ -45,7 +46,8 @@ public class App {
     	String droneType = args[6].toLowerCase();
     	
     	// Run APP
-    	new App(day, month, year, initDronePos, seed, droneType);
+    	App app = new App(day, month, year, initDronePos, seed, droneType);
+    	app.run();
     }
     
     /**
@@ -55,26 +57,25 @@ public class App {
      * type of drone.
      * 
      * @param day
-     * @param month						The date of map.
+     * @param month			The date of map.
      * @param year
-     * @param initDronePos				The position where the drone starts.
-     * @param seed						The random seed.
-     * @param droneType					The type of drone, either stateless or stateful.
+     * @param initDronePos	The position where the drone starts.
+     * @param seed			The random seed.
+     * @param droneType		The type of drone, either stateless or stateful.
      */
-    public App(String day, String month, String year, Position initDronePos, long seed, String droneType) {
-    	long startTime = System.currentTimeMillis();
-    	
+    App(String day, String month, String year, Position initDronePos, long seed, String droneType) {
     	// Initiate stations
 		downloadMap(year, month, day);
-		
-		// Total coins
-		double totalCoins = getTotalCoins();
     	
     	// Initiate drone
     	String txtFileName = String.format("%s-%s-%s-%s.txt", droneType, day, month, year); 
     	String geojsonFileName = String.format("%s-%s-%s-%s.geojson", droneType, day, month, year);
 		try {
+			// Initialise PrintWriters for outputs.
 			txtWriter = new PrintWriter(txtFileName, "UTF-8");
+	    	jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
+			
+			// Initialise a drone instance.
 			if (droneType.equals("stateless")) {
 	    		drone = new StatelessDrone(initDronePos, seed, this);
 	    	} else if (droneType.equals("stateful")) {
@@ -83,12 +84,6 @@ public class App {
 	    		txtWriter.close();
 	    		throw new ClassNotFoundException();
 	    	}
-			
-	    	// Create and write to geojson file.
-	    	PrintWriter jsonWriter = new PrintWriter(geojsonFileName, "UTF-8");
-	    	
-	    	// Run the drone
-	    	run(txtWriter, jsonWriter);
 	    	
 		} catch (FileNotFoundException | UnsupportedEncodingException e) {
 			e.printStackTrace();
@@ -98,28 +93,6 @@ public class App {
 			System.exit(1);
 		}
     	
-    	// Evaluate the performance.
-    	long endTime = System.currentTimeMillis();
-    	if (drone.coins/totalCoins < 1 || endTime - startTime>500) {
-    		System.out.println("==== "+droneType+" drone is running in "+day+" "+month+" "+year+" "+"====");
-    		System.out.println("Coins ratio: " + drone.coins/totalCoins);
-    		System.out.println("Elapsed time in milliseconds: " + (endTime - startTime));
-    	}
-    }
-    
-    /**
-     * For evaluation performance, check how many coins the drone got.
-     * 
-     * @return The total number of coins in the map.
-     */
-    private double getTotalCoins() {
-    	double result = 0;
-    	for (ChargingStation s : stations) {
-    		if (s.type == ChargingStation.LIGHTHOUSE) {
-    			result += s.coins;
-    		}
-    	}
-    	return result;
     }
     
     /**
@@ -129,7 +102,7 @@ public class App {
      * @param txtWriter   The PrintWriter for the drone to store its state changes
      * @param jsonWriter  The PrintWriter for the app to generate a GeoJSON file
      */
-    private void run(PrintWriter txtWriter, PrintWriter jsonWriter) {
+    void run() {
     	// Run the drone.
     	Feature f = drone.strategy();
 		txtWriter.close();
@@ -138,7 +111,7 @@ public class App {
     	featuresList.add(f);
     	FeatureCollection fc = FeatureCollection.fromFeatures(featuresList);
     	
-    	// Write feature collection to geojson file.
+    	// Write feature collection to GeoJson file.
 		jsonWriter.println(fc.toJson());
 		jsonWriter.close();
     }

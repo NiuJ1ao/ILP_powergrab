@@ -14,7 +14,7 @@ import com.mapbox.geojson.Feature;
  * 
  * @author s1740055
  */
-public class StatelessDrone extends Drone{
+class StatelessDrone extends Drone{
 
 	StatelessDrone(Position p, long seed, App app) {
 		super(p, seed, app);

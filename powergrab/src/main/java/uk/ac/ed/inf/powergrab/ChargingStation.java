@@ -12,7 +12,7 @@ package uk.ac.ed.inf.powergrab;
  *  
  * @author s1740055
  */
-public class ChargingStation { 
+class ChargingStation { 
 	
 	double coins;
 	double power;

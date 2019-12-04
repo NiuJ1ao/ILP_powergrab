@@ -21,7 +21,7 @@ import com.mapbox.geojson.Feature;
  * 
  * @author s1740055
  */
-public class StatefulDrone extends Drone{
+class StatefulDrone extends Drone{
 
 	private Map<Integer, Direction> radianToDirection = new HashMap<Integer, Direction>();
 	
@@ -326,6 +326,7 @@ public class StatefulDrone extends Drone{
 	
 	/**
 	 * A helper function for 2-opt. This calculates the length of the new route from the old one. 
+	 * 
 	 * @param route       The old route
 	 * @param a           The start index of swapping
 	 * @param b  		  The end index of swapping

@@ -4,8 +4,8 @@ import java.util.HashMap;
 
 class Position {
 	
-	public double latitude;
-	public double longitude;
+	double latitude;
+	double longitude;
 	private final static double r = 0.0003;
 	private static HashMap<Direction, Position> movement = new HashMap<Direction, Position>();
 	

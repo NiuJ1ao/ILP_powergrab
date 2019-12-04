@@ -31,15 +31,15 @@ import com.mapbox.geojson.Point;
 
  * @author s1740055
  */
-public abstract class Drone {
+abstract class Drone {
 	
 	Position position;
 	double coins;
 	double power;
 	final Random rnd;
+	App app;
 	private int steps;
 	private List<Point> points = new ArrayList<Point>();
-	App app;
 	
 	private static final double ACCESS_RANGE = 0.00025;
 	private static final double POWER_CONSUMPTION = 1.25;
@@ -57,7 +57,7 @@ public abstract class Drone {
 	 */
 	Drone(Position position, long seed, App app) {
 		this.position = position;
-		this.coins = 0;
+		this.coins = MIN_PAYLOAD;
 		this.power = 250;
 		this.rnd = new Random(seed);
 		this.steps = 0;
